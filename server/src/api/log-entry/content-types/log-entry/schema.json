@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "log_entries",
+  "info": {
+    "singularName": "log-entry",
+    "pluralName": "log-entries",
+    "displayName": "LogEntry"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "added",
+        "edited",
+        "deleted",
+        "restored"
+      ]
+    },
+    "user": {
+      "type": "string",
+      "required": true
+    },
+    "employeeId": {
+      "type": "integer",
+      "required": true
+    },
+    "oldData": {
+      "type": "json"
+    },
+    "newData": {
+      "type": "json"
+    },
+    "reason": {
+      "type": "text"
+    },
+    "timestamp": {
+      "type": "datetime",
+      "required": true
+    }
+  }
+}

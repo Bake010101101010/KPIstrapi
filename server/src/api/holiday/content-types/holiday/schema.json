@@ -1,0 +1,33 @@
+{
+    "kind": "collectionType",
+    "collectionName": "holidays",
+    "info": {
+      "singularName": "holiday",
+      "pluralName": "holidays",
+      "displayName": "Holiday",
+      "description": ""
+    },
+    "options": {
+      "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+      "date": {
+        "type": "date",
+        "required": true
+      },
+      "year": {
+        "type": "integer",
+        "min": 2000,
+        "max": 2100
+      },
+      "month": {
+        "type": "integer",
+        "min": 1,
+        "max": 12
+      },
+      "description": {
+        "type": "text"
+      }
+    }
+  }

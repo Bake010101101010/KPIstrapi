@@ -1,0 +1,1330 @@
+[
+  {
+    "id": 1,
+    "fio": "Абаева Марияна Кабкеновна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": "Молодец"
+  },
+  {
+    "id": 2,
+    "fio": "Ағыбаева Жібек Қанатқызы",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 3,
+    "fio": "Ажкенова Бахыт Кенесовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 4,
+    "fio": "Альпеисова Ильнияз Иман-Мухаметовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 5,
+    "fio": "Амирова Лаззат Каирхановна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 6,
+    "fio": "Ахмедина Кумысшаш Бижановна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 7,
+    "fio": "Ахтай Ермекгүл Аршынбай",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 8,
+    "fio": "Ашимханова Анар Умирбековна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 9,
+    "fio": "Базарова Сулу Куралбаевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 10,
+    "fio": "Базгутдинова Флюра Киямовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 11,
+    "fio": "Баисова Акбота Каныбеккызы",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 12,
+    "fio": "Байгабылова Дамира Каиржановна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 13,
+    "fio": "Байкулова Улбосын Сапаралиевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 14,
+    "fio": "Баймуратова Гульсум Сериковна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 15,
+    "fio": "Беккожина Раушан Алтаевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 16,
+    "fio": "Бөкейхан Майгүл",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 17,
+    "fio": "Грицевич Татьяна Павловна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 18,
+    "fio": "Есимсеитов Кайыргали Гусманович",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 19,
+    "fio": "Жакишова Мадина Сакеновна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 20,
+    "fio": "Жакупова Гульмира Сапаровна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 21,
+    "fio": "Жамангарина Корлан Жигеровна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 22,
+    "fio": "Жилгельдина Алтыншаш Каировна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 23,
+    "fio": "Жумагулова Майра Карбаевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 24,
+    "fio": "Жунусова Перизат Сайлаубаевна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 25,
+    "fio": "Жусупова Жазира Асылхановна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 26,
+    "fio": "Захарова Юлия Владимировна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 27,
+    "fio": "Змеева Светлана Юрьевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 28,
+    "fio": "Ибраева Карлыгаш Курмашевна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 29,
+    "fio": "Ирисбаева-Дусаганова Тамаша Лукмановна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 30,
+    "fio": "Искакова Елена Юрьевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 31,
+    "fio": "Калдыбаева Жазира Тураровна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 32,
+    "fio": "Калиева Нуржамал Есимжановна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 33,
+    "fio": "Калиева Нуржамал Рахметовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 34,
+    "fio": "Карипова Кадиша Тулеуовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 35,
+    "fio": "Касенова Жамал Омаровна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 36,
+    "fio": "Касымбекова Айбарша Кенесовна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 37,
+    "fio": "Кәкімжанова Ақмарал Адайқызы",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 38,
+    "fio": "Кемелова Жалгас Балгаевна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 39,
+    "fio": "Керимбекова Тамара Умирзаховна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 40,
+    "fio": "Колесниченко Елена Владимировна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 41,
+    "fio": "Куанышкалиева Айнагуль Аубакировна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 42,
+    "fio": "Кульмагамбетова Галина Андреевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 43,
+    "fio": "Кусаинова Жанат Сабиткызы",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 44,
+    "fio": "Литвиненко Елена Владимировна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 45,
+    "fio": "Литвинова Ирина Николаевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 46,
+    "fio": "Матаева Кенжесара Сейтмаганбетовна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 47,
+    "fio": "Михайлова Ирина Николаевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 48,
+    "fio": "Мусабекова Сандыгул Жетписбаевна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 49,
+    "fio": "Несипбаева Перизат Сарсеновна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 50,
+    "fio": "Нурболова Айнур Карбозовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 51,
+    "fio": "Нургалиева Гульнара Бахытбековна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 52,
+    "fio": "Нурмагамбетова Карлыгаш Жамбуловна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 53,
+    "fio": "Омарова Кульнар Шахметовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 54,
+    "fio": "Орынбаева Кундызай Авезбековна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 55,
+    "fio": "Ратушняк Ирина Николаевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 56,
+    "fio": "Рахимжанова Гульназ Сеитрахимовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 57,
+    "fio": "Руденко Альфида Талгатовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 58,
+    "fio": "Сабчук Лариса Викторовна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 59,
+    "fio": "Садвакасова Гульнара Батановна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 60,
+    "fio": "Сайфутдинова Гульнара Ильдусовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 61,
+    "fio": "Салимжанова Роза Рахимбековна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 62,
+    "fio": "Сапарбаева Дариха Калыбаевна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 63,
+    "fio": "Саргужина Карлыгаш Ахболатовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 64,
+    "fio": "Сейтакова Дамен Балтабековна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 65,
+    "fio": "Сейткожина Зора Смаиловна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 66,
+    "fio": "Серикбаева Кульжиян Матюшевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 67,
+    "fio": "Смирнова Ольга Сергеевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 68,
+    "fio": "Сосунова Раиса Рахматулловна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 69,
+    "fio": "Суендыкова Мархаба Жоломановна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 70,
+    "fio": "Сулейменова Гулдана Оразовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 71,
+    "fio": "Сулейменова Шакира Рашитовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 72,
+    "fio": "Тасбаева Айнаш Амантаевна",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 73,
+    "fio": "Телтаева Асима Айдаровна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 74,
+    "fio": "Телтаева Жулдыз Айдаровна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 75,
+    "fio": "Токмейлова Алмагуль Тауровна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 76,
+    "fio": "Тулебаева Улжалгас Аяшовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 77,
+    "fio": "Туякова Рысалды Самиевна",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 78,
+    "fio": "Уалиева Карлыгаш Калкайдаровна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 79,
+    "fio": "Утебаева Хабиба Тулкибаевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 80,
+    "fio": "Файзулин Жанибек Алтаевич",
+    "kpiSum": 24000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 81,
+    "fio": "Фокина Ирина Кумаровна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 82,
+    "fio": "Харина Гульнара Хамитовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 83,
+    "fio": "Шаймурзин Ермек Негметович",
+    "kpiSum": 30000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 84,
+    "fio": "Шалгинбаева Кайргуль Маштаевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 85,
+    "fio": "Шалкарова Айнагуль Ерденбаевна",
+    "kpiSum": 30000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 86,
+    "fio": "Шолпанкулова Акмарал Аукеновна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 87,
+    "fio": "Салыкова Гуляим Окатаевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 88,
+    "fio": "Сухаревская Людмила Ивановна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 89,
+    "fio": "Шевченко Светлана Валериевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 90,
+    "fio": "Батаева Ирина Петровна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 91,
+    "fio": "Сулейменова Карлыгаш Тегисовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 92,
+    "fio": "Малгаждарова Айша Сагандыковна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 93,
+    "fio": "Ұлан Наргиз Турсуновна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 94,
+    "fio": "Туребаева Клара Сакеновна",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 95,
+    "fio": "Акжанова Дильмара Ануашевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 96,
+    "fio": "Сердалина Диана Виллеровна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 97,
+    "fio": "Амирбекова Гулмира Курасовна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 98,
+    "fio": "Кадылбекова Мейрамгуль Кадылбековна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 99,
+    "fio": "Манылова Ольга Николаевна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 100,
+    "fio": "Сагиндыкова Жаннат Абдуаповна",
+    "kpiSum": 22000,
+    "scheduleType": "shift",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 101,
+    "fio": "Абдирова Айгерим Кудайбергеновна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 109,
+    "fio": "Алиева Дарьягуль Куанышевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 110,
+    "fio": "Амбражевич Елена Базаргалиевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 111,
+    "fio": "Ашимова Венера Изимбергеновна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 112,
+    "fio": "Байдюсенова Данагуль Абаевна",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 113,
+    "fio": "Ишманова Айнагуль Аманкызы",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 114,
+    "fio": "Курманова Каракас Ехсановна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 115,
+    "fio": "Калинина  Галина  Александровна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 116,
+    "fio": "Мухамеджарова Асемгуль Оразовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 117,
+    "fio": "Тулегенова Динара Жолдыбаевна",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 118,
+    "fio": "Хасенова Алмагуль Калыбековна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 119,
+    "fio": "Джуманова Зямзямгуль Кадыркановна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 120,
+    "fio": "Козыкеева Айман Баймагамбетовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 121,
+    "fio": "Казимова Кинжибике Дильхатовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 122,
+    "fio": "Корн Валентина Викторовна",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 123,
+    "fio": "Балгожина Алия Сериковна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 124,
+    "fio": "Оспанова Анара Акылбаевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 125,
+    "fio": "Сейтмугамбетова Сауле Кадыровна",
+    "kpiSum": 25000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 126,
+    "fio": "Кабулова Зайда Естаевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 127,
+    "fio": "Бабич Светлана Валерьевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-1",
+    "categoryCode": ""
+  },
+  {
+    "id": 128,
+    "fio": "Аймаханова Асель Рамазановна",
+    "kpiSum": 60000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 129,
+    "fio": "Альшурина Гульсим Мирамбековна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 130,
+    "fio": "Аманғали Анаргүл",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 131,
+    "fio": "Байджанова Алия Жалгасовна",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 132,
+    "fio": "Бисенова Мерует Сундетовна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 133,
+    "fio": "Дельмаганбетова Айгуль Алдияровна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 134,
+    "fio": "Жунисбекова Эльвира Мухамедкалиевна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 135,
+    "fio": "Ибраева Забира Зейнулловна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 136,
+    "fio": "Исадилова Гульнафис Сиязкеновна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 137,
+    "fio": "Карасартова Каромат Анаралиевна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 139,
+    "fio": "Кудасова Айнаш Толебаевна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 141,
+    "fio": "Кушкарова Алима Рахметуллаевна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 142,
+    "fio": "Құсайын Әсем Қайратқызы",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 143,
+    "fio": "Нуржанова Айман Куанышевна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 144,
+    "fio": "Оспанова Назгул Абдымаханбетовна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 145,
+    "fio": "Садыкова Кульзия",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 146,
+    "fio": "Унгаева Самал Еркеновна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 147,
+    "fio": "Усенбаева Кулзайра Сундетовна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 148,
+    "fio": "Шарафутдинова Алтыншаш Темировна",
+    "kpiSum": 21000,
+    "scheduleType": "day",
+    "department": "ОЦМК-3",
+    "categoryCode": ""
+  },
+  {
+    "id": 149,
+    "fio": "Башкатова Екатерина Викторовна",
+    "kpiSum": 60000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 150,
+    "fio": "Кажмуратова Алма Мукатовна",
+    "kpiSum": 60000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 151,
+    "fio": "Аличова Умсынай Амангелдиевна",
+    "kpiSum": 60000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 152,
+    "fio": "Мустахова Света Курмангалиевна",
+    "kpiSum": 60000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 153,
+    "fio": "Амбражевич Елена Базаргалиевна",
+    "kpiSum": 30000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 154,
+    "fio": "Хасенова Алмагуль Калыбековна",
+    "kpiSum": 30000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 155,
+    "fio": "Базгутдинова Флюра Киямовна",
+    "kpiSum": 30000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 156,
+    "fio": "Корн Валентина Викторовна",
+    "kpiSum": 100000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 157,
+    "fio": "Кульмагамбетова Галина Андреевна",
+    "kpiSum": 30000,
+    "scheduleType": "day",
+    "department": "ОЦМК-4",
+    "categoryCode": ""
+  },
+  {
+    "id": 158,
+    "fio": "Елюбаева Гульмира Темиргалиевна",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 159,
+    "fio": "Ибраимова Кулзия Мейрамхановна",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 160,
+    "fio": "Капарова Бахытгуль Дюсенбаевна",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 161,
+    "fio": "Касенова Светлана Шакеновна",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 162,
+    "fio": "Колобаева Бахит Сагиновна",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 163,
+    "fio": "Мирзакулова Карима Жумановна",
+    "kpiSum": 40000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 164,
+    "fio": "Сейтмугамбетова Сауле Кадыровна",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 165,
+    "fio": "Серикбаева Бахытгул Рысбаевна",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 166,
+    "fio": "Тайганова Панзия Федосовна",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 167,
+    "fio": "Шаймұрат Оңалған",
+    "kpiSum": 50000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 168,
+    "fio": "Мирзакулова Гулзада Дауренбековна",
+    "kpiSum": 40000,
+    "scheduleType": "day",
+    "department": "Прачечная",
+    "categoryCode": ""
+  },
+  {
+    "id": 169,
+    "fio": "Абдрахманова Айнур Ильясовна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 170,
+    "fio": "Губина Оксана Валерьевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 171,
+    "fio": "Едиресова Турсынгул Кузембаевна",
+    "kpiSum": 24000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 172,
+    "fio": "Кутжанова Ардак Аскаровна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 173,
+    "fio": "Кошикбаева Айгерим Арыстанбековна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 174,
+    "fio": "Рерих Светлана Николаевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  },
+  {
+    "id": 175,
+    "fio": "Иргебаева Шынар Казытаевна",
+    "kpiSum": 22000,
+    "scheduleType": "day",
+    "department": "ОЦМК-2",
+    "categoryCode": ""
+  }
+]

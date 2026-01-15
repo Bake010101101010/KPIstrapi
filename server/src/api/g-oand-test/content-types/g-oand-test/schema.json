@@ -1,0 +1,14 @@
+{
+  "kind": "collectionType",
+  "collectionName": "g_oand_tests",
+  "info": {
+    "singularName": "g-oand-test",
+    "pluralName": "g-oand-tests",
+    "displayName": "GOandTEST"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {}
+}

@@ -1,0 +1,1919 @@
+
+// import { useEffect, useState } from "react";
+// import {
+//   apiLogin,
+//   fetchMe,
+//   calcKpiJson,
+//   downloadKpiExcel,
+//   downloadKpi1C,
+//   downloadKpiBuh,
+//   downloadBlobAsFile,
+//   fetchKpiList,
+//   apiAddEmployee,
+//   apiEditEmployee,
+//   apiDeleteEmployee,
+//   fetchDeletedLog,
+//   fetchEditedLog,
+//   apiRestoreEmployee,
+// } from "./api";
+
+// const COLOR_BLUE = "#1f3c88"; // базовый синий
+// const COLOR_GREEN = "#123524"; // Phthalo green
+// const COLOR_BG = "#f4f7fb";
+// const COLOR_CARD = "#ffffff";
+
+// const STORAGE_TOKEN_KEY = "nnmc_kpi_token";
+// const STORAGE_USER_KEY = "nnmc_kpi_user";
+// const STORAGE_TAB_KEY = "nnmc_kpi_tab";
+
+// function App() {
+//   const [token, setToken] = useState(null);
+//   const [currentUser, setCurrentUser] = useState(null);
+//   const [activeTab, setActiveTab] = useState("calc"); // calc | directory
+
+//   const [globalMessage, setGlobalMessage] = useState(null); // {type:"success"|"error", text:""}
+
+//   // Восстанавливаем токен и таб из localStorage
+//   useEffect(() => {
+//     const savedToken = window.localStorage.getItem(STORAGE_TOKEN_KEY);
+//     const savedUser = window.localStorage.getItem(STORAGE_USER_KEY);
+//     const savedTab = window.localStorage.getItem(STORAGE_TAB_KEY);
+//     if (savedToken && savedUser) {
+//       try {
+//         const userObj = JSON.parse(savedUser);
+//         setToken(savedToken);
+//         setCurrentUser(userObj);
+//       } catch (e) {
+//         // ignore
+//       }
+//     }
+//     if (savedTab) {
+//       setActiveTab(savedTab);
+//     }
+//   }, []);
+
+//   // Проверяем токен, если он восстановлен
+//   useEffect(() => {
+//     const checkMe = async () => {
+//       if (!token) return;
+//       try {
+//         const me = await fetchMe(token);
+//         setCurrentUser({ login: me.login, role: me.role });
+//       } catch (e) {
+//         handleLogout(true);
+//       }
+//     };
+//     checkMe();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [token]);
+
+//   const handleLogout = (silent = false) => {
+//     setToken(null);
+//     setCurrentUser(null);
+//     window.localStorage.removeItem(STORAGE_TOKEN_KEY);
+//     window.localStorage.removeItem(STORAGE_USER_KEY);
+//     if (!silent) {
+//       showMessage("success", "Вы вышли из системы");
+//     }
+//   };
+
+//   const showMessage = (type, text) => {
+//     setGlobalMessage({ type, text });
+//     setTimeout(() => {
+//       setGlobalMessage(null);
+//     }, 4000);
+//   };
+
+//   const handleAuthError = (err) => {
+//     if (err.message === "AUTH_REQUIRED") {
+//       handleLogout(true);
+//       showMessage("error", "Сессия истекла. Войдите снова.");
+//     } else {
+//       showMessage("error", err.message || "Ошибка");
+//     }
+//   };
+
+//   const handleLoginSuccess = (tok, user) => {
+//     setToken(tok);
+//     setCurrentUser(user);
+//     window.localStorage.setItem(STORAGE_TOKEN_KEY, tok);
+//     window.localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+//     showMessage("success", "Успешный вход");
+//   };
+
+//   const handleChangeTab = (tab) => {
+//     setActiveTab(tab);
+//     window.localStorage.setItem(STORAGE_TAB_KEY, tab);
+//   };
+
+//   if (!token || !currentUser) {
+//     return (
+//       <div
+//         style={{
+//           minHeight: "100vh",
+//           background:
+//             "radial-gradient(circle at top left, #e0f2fe 0, #f4f7fb 40%, #e5f6ff 100%)",
+//           display: "flex",
+//           alignItems: "center",
+//           justifyContent: "center",
+//           padding: 16,
+//         }}
+//       >
+//         <div
+//           style={{
+//             backgroundColor: COLOR_CARD,
+//             padding: 32,
+//             borderRadius: 20,
+//             boxShadow: "0 20px 45px rgba(15,23,42,0.18)",
+//             width: 380,
+//             position: "relative",
+//           }}
+//         >
+//           <div style={{ textAlign: "center", marginBottom: 16 }}>
+//             <div
+//               style={{
+//                 width: 80,
+//                 height: 80,
+//                 borderRadius: 999,
+//                 margin: "0 auto 8px",
+//                 backgroundColor: "#e0f2fe",
+//                 display: "flex",
+//                 alignItems: "center",
+//                 justifyContent: "center",
+//                 overflow: "hidden",
+//               }}
+//             >
+//               {/* логотип ННМЦ, пользователь подставит реальную картинку */}
+//               <span style={{ fontSize: 36 }}>💧</span>
+//             </div>
+//             <h1 style={{ fontSize: 20, marginBottom: 4, color: COLOR_BLUE }}>
+//               NNMC KPI Panel
+//             </h1>
+//             <p
+//               style={{
+//                 fontSize: 12,
+//                 color: "#6b7280",
+//                 margin: 0,
+//               }}
+//             >
+//               Введите логин и пароль для работы с табелями и KPI
+//             </p>
+//           </div>
+
+//           <LoginForm onLoginSuccess={handleLoginSuccess} />
+
+//           {globalMessage && (
+//             <div
+//               style={{
+//                 marginTop: 12,
+//                 fontSize: 13,
+//                 textAlign: "center",
+//                 color:
+//                   globalMessage.type === "error" ? "#b91c1c" : "#047857",
+//               }}
+//             >
+//               {globalMessage.text}
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div
+//       style={{
+//         minHeight: "100vh",
+//         background:
+//           "linear-gradient(135deg, #e0f2fe 0, #f4f7fb 40%, #e0f2f1 100%)",
+//       }}
+//     >
+//       <header
+//         style={{
+//           background: `linear-gradient(135deg, ${COLOR_BLUE}, ${COLOR_GREEN})`,
+//           color: "white",
+//           padding: "12px 20px",
+//           display: "flex",
+//           alignItems: "center",
+//           justifyContent: "space-between",
+//         }}
+//       >
+//         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+//           <div
+//             style={{
+//               width: 40,
+//               height: 40,
+//               borderRadius: 999,
+//               backgroundColor: "rgba(255,255,255,0.12)",
+//               display: "flex",
+//               alignItems: "center",
+//               justifyContent: "center",
+//               overflow: "hidden",
+//               fontSize: 22,
+//             }}
+//           >
+//             💧
+//           </div>
+//           <div>
+//             <div style={{ fontSize: 17, fontWeight: 600 }}>
+//               Национальный Научный Медицинский Центр — KPI
+//             </div>
+//             <div style={{ fontSize: 11, opacity: 0.95 }}>
+//               Расчёт бонусов по табелю и управление справочником сотрудников
+//             </div>
+//           </div>
+//         </div>
+//         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+//           <div style={{ textAlign: "right", fontSize: 12 }}>
+//             <div>{currentUser.login}</div>
+//             <div style={{ fontSize: 11, opacity: 0.9 }}>
+//               Роль: {currentUser.role === "admin" ? "Администратор" : "Руководитель"}
+//             </div>
+//           </div>
+//           <button
+//             onClick={() => handleLogout(false)}
+//             style={{
+//               padding: "6px 12px",
+//               borderRadius: 999,
+//               border: "1px solid rgba(255,255,255,0.7)",
+//               backgroundColor: "transparent",
+//               color: "white",
+//               cursor: "pointer",
+//               fontSize: 12,
+//             }}
+//           >
+//             Выйти
+//           </button>
+//         </div>
+//       </header>
+
+//       <main
+//         style={{
+//           maxWidth: 1260,
+//           margin: "16px auto 24px",
+//           padding: "0 16px",
+//         }}
+//       >
+//         <div
+//           style={{
+//             display: "flex",
+//             gap: 8,
+//             marginBottom: 12,
+//             borderBottom: "1px solid #e5e7eb",
+//           }}
+//         >
+//           <TabButton
+//             active={activeTab === "calc"}
+//             onClick={() => handleChangeTab("calc")}
+//           >
+//             Расчёт KPI по табелю
+//           </TabButton>
+//           <TabButton
+//             active={activeTab === "directory"}
+//             onClick={() => handleChangeTab("directory")}
+//           >
+//             Справочник сотрудников / История
+//           </TabButton>
+//         </div>
+
+//         {globalMessage && (
+//           <div
+//             style={{
+//               marginBottom: 10,
+//               padding: "8px 10px",
+//               borderRadius: 10,
+//               fontSize: 13,
+//               backgroundColor:
+//                 globalMessage.type === "error" ? "#fee2e2" : "#dcfce7",
+//               color:
+//                 globalMessage.type === "error" ? "#b91c1c" : "#166534",
+//             }}
+//           >
+//             {globalMessage.text}
+//           </div>
+//         )}
+
+//         {activeTab === "calc" && (
+//           <CalcPage
+//             token={token}
+//             onAuthError={handleAuthError}
+//             onMessage={showMessage}
+//           />
+//         )}
+
+//         {activeTab === "directory" && (
+//           <DirectoryPage
+//             token={token}
+//             currentUser={currentUser}
+//             onAuthError={handleAuthError}
+//             onMessage={showMessage}
+//           />
+//         )}
+//       </main>
+//     </div>
+//   );
+// }
+
+// function TabButton({ active, onClick, children }) {
+//   return (
+//     <button
+//       onClick={onClick}
+//       style={{
+//         padding: "8px 16px",
+//         borderRadius: 999,
+//         border: "none",
+//         fontSize: 13,
+//         cursor: "pointer",
+//         backgroundColor: active ? COLOR_BLUE : "transparent",
+//         color: active ? "white" : "#374151",
+//         boxShadow: active ? "0 4px 10px rgba(0,0,0,0.15)" : "none",
+//         transform: active ? "translateY(-1px)" : "none",
+//       }}
+//     >
+//       {children}
+//     </button>
+//   );
+// }
+
+// function LoginForm({ onLoginSuccess }) {
+//   const [login, setLogin] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [loading, setLoading] = useState(false);
+//   const [localError, setLocalError] = useState("");
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setLocalError("");
+
+//     if (!login.trim() || !password.trim()) {
+//       setLocalError("Укажите логин и пароль.");
+//       return;
+//     }
+
+//     try {
+//       setLoading(true);
+//       const data = await apiLogin({ login, password });
+//       onLoginSuccess(data.token, { login: data.login, role: data.role });
+//     } catch (err) {
+//       setLocalError(err.message || "Ошибка авторизации");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <form
+//       onSubmit={handleSubmit}
+//       style={{ display: "grid", gap: 10, marginTop: 6 }}
+//     >
+//       <div>
+//         <label
+//           style={{
+//             display: "block",
+//             fontSize: 13,
+//             marginBottom: 4,
+//           }}
+//         >
+//           Логин
+//         </label>
+//         <input
+//           type="text"
+//           value={login}
+//           onChange={(e) => setLogin(e.target.value)}
+//           style={{
+//             width: "100%",
+//             padding: "8px 10px",
+//             borderRadius: 8,
+//             border: "1px solid #d1d5db",
+//             fontSize: 13,
+//           }}
+//         />
+//       </div>
+//       <div>
+//         <label
+//           style={{
+//             display: "block",
+//             fontSize: 13,
+//             marginBottom: 4,
+//           }}
+//         >
+//           Пароль
+//         </label>
+//         <input
+//           type="password"
+//           value={password}
+//           autoComplete="current-password"
+//           onChange={(e) => setPassword(e.target.value)}
+//           style={{
+//             width: "100%",
+//             padding: "8px 10px",
+//             borderRadius: 8,
+//             border: "1px solid #d1d5db",
+//             fontSize: 13,
+//           }}
+//         />
+//       </div>
+//       {localError && (
+//         <div style={{ fontSize: 12, color: "#b91c1c" }}>{localError}</div>
+//       )}
+//       <button
+//         type="submit"
+//         disabled={loading}
+//         style={{
+//           marginTop: 4,
+//           padding: "8px 12px",
+//           borderRadius: 999,
+//           border: "none",
+//           background: `linear-gradient(135deg, ${COLOR_BLUE}, ${COLOR_GREEN})`,
+//           color: "white",
+//           fontSize: 13,
+//           fontWeight: 500,
+//           cursor: loading ? "default" : "pointer",
+//         }}
+//       >
+//         {loading ? "Входим..." : "Войти"}
+//       </button>
+//     </form>
+//   );
+// }
+
+// // ======== CalcPage =========
+
+// function CalcPage({ token, onAuthError, onMessage }) {
+//   const now = new Date();
+//   const [timesheetFile, setTimesheetFile] = useState(null);
+//   const [nchDay, setNchDay] = useState("");
+//   const [ndShift, setNdShift] = useState("");
+//   const [year, setYear] = useState(now.getFullYear());
+//   const [month, setMonth] = useState(now.getMonth() + 1);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState("");
+//   const [results, setResults] = useState([]);
+//   const [errorsList, setErrorsList] = useState([]);
+
+//   const hasResults = results && results.length > 0;
+
+//   const baseArgs = {
+//     token,
+//     timesheetExcel: timesheetFile,
+//     nchDay: nchDay || 0,
+//     ndShift: ndShift || 0,
+//     year,
+//     month,
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setError("");
+//     setResults([]);
+//     setErrorsList([]);
+
+//     if (!timesheetFile) {
+//       setError("Загрузите файл табеля.");
+//       return;
+//     }
+//     if (!nchDay && !ndShift) {
+//       setError("Укажите Н.ч для дневных и/или Н.д для суточных.");
+//       return;
+//     }
+//     if (!year || !month) {
+//       setError("Укажите год и месяц.");
+//       return;
+//     }
+
+//     try {
+//       setLoading(true);
+//       const data = await calcKpiJson(baseArgs);
+//       setResults(data.results || []);
+//       setErrorsList(data.errors || []);
+//       onMessage("success", "Расчёт выполнен. Результаты показаны ниже.");
+//     } catch (err) {
+//       if (err.message === "AUTH_REQUIRED") {
+//         onAuthError(err);
+//       } else {
+//         setError(err.message || "Ошибка при расчёте KPI.");
+//       }
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleDownload = async (mode) => {
+//     if (!timesheetFile) {
+//       setError("Сначала выберите файл табеля и посчитайте KPI.");
+//       return;
+//     }
+//     if (!hasResults) {
+//       setError("Сначала посчитайте KPI (кнопка выше).");
+//       return;
+//     }
+
+//     setError("");
+//     try {
+//       setLoading(true);
+//       let blob;
+//       let filename;
+//       if (mode === "excel") {
+//         blob = await downloadKpiExcel(baseArgs);
+//         filename = "KPIfinal.xlsx";
+//       } else if (mode === "1c") {
+//         blob = await downloadKpi1C(baseArgs);
+//         filename = "KPI_for_1C.xlsx";
+//       } else if (mode === "buh") {
+//         blob = await downloadKpiBuh(baseArgs);
+//         filename = "KPI_for_Buh.xlsx";
+//       } else {
+//         return;
+//       }
+//       downloadBlobAsFile(blob, filename);
+//       onMessage("success", "Файл успешно сформирован и скачан.");
+//     } catch (err) {
+//       if (err.message === "AUTH_REQUIRED") {
+//         onAuthError(err);
+//       } else {
+//         setError(err.message || "Ошибка при скачивании файла.");
+//       }
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div
+//       style={{
+//         backgroundColor: COLOR_CARD,
+//         borderRadius: 16,
+//         padding: 20,
+//         boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
+//       }}
+//     >
+//       <h2 style={{ fontSize: 18, marginBottom: 8, color: COLOR_BLUE }}>
+//         Расчёт KPI по табелю
+//       </h2>
+//       <p style={{ fontSize: 12, color: "#6b7280", marginTop: 0 }}>
+//         Загрузите табель за месяц, укажите нормативы Н.ч / Н.д и нажмите
+//         &laquo;Рассчитать&raquo;. Ниже появятся результаты для всех
+//         сотрудников.
+//       </p>
+
+//       <form
+//         onSubmit={handleSubmit}
+//         style={{ display: "grid", gap: 12, marginBottom: 18 }}
+//       >
+//         <div>
+//           <label style={{ display: "block", marginBottom: 4, fontSize: 13 }}>
+//             Табель (Excel):
+//           </label>
+//           <input
+//             type="file"
+//             accept=".xlsx,.xls"
+//             onChange={(e) => setTimesheetFile(e.target.files[0] || null)}
+//             style={{ fontSize: 13 }}
+//           />
+//         </div>
+
+//         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+//           <div>
+//             <label style={{ display: "block", marginBottom: 4, fontSize: 13 }}>
+//               Н.ч для дневных (кол-во рабочих дней в месяце):
+//             </label>
+//             <input
+//               type="number"
+//               value={nchDay}
+//               onChange={(e) => setNchDay(e.target.value)}
+//               placeholder="Например, 21"
+//               style={{
+//                 width: "100%",
+//                 padding: 6,
+//                 fontSize: 13,
+//                 borderRadius: 8,
+//                 border: "1px solid #d1d5db",
+//               }}
+//             />
+//           </div>
+//           <div>
+//             <label style={{ display: "block", marginBottom: 4, fontSize: 13 }}>
+//               Н.д для суточных (кол-во суточных смен в месяце):
+//             </label>
+//             <input
+//               type="number"
+//               value={ndShift}
+//               onChange={(e) => setNdShift(e.target.value)}
+//               placeholder="Например, 7"
+//               style={{
+//                 width: "100%",
+//                 padding: 6,
+//                 fontSize: 13,
+//                 borderRadius: 8,
+//                 border: "1px solid #d1d5db",
+//               }}
+//             />
+//           </div>
+//         </div>
+
+//         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+//           <div>
+//             <label style={{ display: "block", marginBottom: 4, fontSize: 13 }}>
+//               Год:
+//             </label>
+//             <input
+//               type="number"
+//               value={year}
+//               onChange={(e) => setYear(Number(e.target.value))}
+//               style={{
+//                 width: "100%",
+//                 padding: 6,
+//                 fontSize: 13,
+//                 borderRadius: 8,
+//                 border: "1px solid #d1d5db",
+//               }}
+//             />
+//           </div>
+//           <div>
+//             <label style={{ display: "block", marginBottom: 4, fontSize: 13 }}>
+//               Месяц (1–12):
+//             </label>
+//             <input
+//               type="number"
+//               min={1}
+//               max={12}
+//               value={month}
+//               onChange={(e) => setMonth(Number(e.target.value))}
+//               style={{
+//                 width: "100%",
+//                 padding: 6,
+//                 fontSize: 13,
+//                 borderRadius: 8,
+//                 border: "1px solid #d1d5db",
+//               }}
+//             />
+//           </div>
+//         </div>
+
+//         {error && (
+//           <div style={{ color: "#b91c1c", fontSize: 13 }}>{error}</div>
+//         )}
+
+//         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 8 }}>
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             style={{
+//               padding: "8px 14px",
+//               backgroundColor: COLOR_BLUE,
+//               color: "white",
+//               border: "none",
+//               borderRadius: 999,
+//               cursor: loading ? "default" : "pointer",
+//               fontSize: 13,
+//             }}
+//           >
+//             {loading ? "Считаем..." : "Рассчитать и показать"}
+//           </button>
+
+//           <button
+//             type="button"
+//             disabled={loading || !hasResults}
+//             onClick={() => handleDownload("excel")}
+//             style={{
+//               padding: "8px 14px",
+//               backgroundColor: "#10b981",
+//               color: "white",
+//               border: "none",
+//               borderRadius: 999,
+//               cursor: loading || !hasResults ? "default" : "pointer",
+//               fontSize: 13,
+//             }}
+//           >
+//             Скачать общий Excel
+//           </button>
+
+//           <button
+//             type="button"
+//             disabled={loading || !hasResults}
+//             onClick={() => handleDownload("1c")}
+//             style={{
+//               padding: "8px 14px",
+//               backgroundColor: "#f97316",
+//               color: "white",
+//               border: "none",
+//               borderRadius: 999,
+//               cursor: loading || !hasResults ? "default" : "pointer",
+//               fontSize: 13,
+//             }}
+//           >
+//             Скачать для 1С
+//           </button>
+
+//           <button
+//             type="button"
+//             disabled={loading || !hasResults}
+//             onClick={() => handleDownload("buh")}
+//             style={{
+//               padding: "8px 14px",
+//               backgroundColor: "#7c3aed",
+//               color: "white",
+//               border: "none",
+//               borderRadius: 999,
+//               cursor: loading || !hasResults ? "default" : "pointer",
+//               fontSize: 13,
+//             }}
+//           >
+//             Скачать для бухгалтерии
+//           </button>
+//         </div>
+//       </form>
+
+//       {results.length > 0 && (
+//         <div>
+//           <h3 style={{ fontSize: 16, marginBottom: 8, color: COLOR_BLUE }}>
+//             Результаты KPI
+//           </h3>
+//           <div
+//             style={{
+//               maxHeight: 420,
+//               overflow: "auto",
+//               border: "1px solid #e5e7eb",
+//               borderRadius: 8,
+//             }}
+//           >
+//             <table
+//               style={{
+//                 width: "100%",
+//                 borderCollapse: "collapse",
+//                 fontSize: 12,
+//               }}
+//             >
+//               <thead>
+//                 <tr style={{ backgroundColor: "#e5edf8" }}>
+//                   <th style={thStyle}>ФИО</th>
+//                   <th style={thStyle}>График</th>
+//                   <th style={thStyle}>Н.ч / Н.д</th>
+//                   <th style={thStyle}>Ф.в / WorkRate</th>
+//                   <th style={thStyle}>Н.о</th>
+//                   <th style={thStyle}>% выполнения</th>
+//                   <th style={thStyle}>KPI сумм</th>
+//                   <th style={thStyle}>KPI итог</th>
+//                   <th style={thStyle}>Букв будни</th>
+//                   <th style={thStyle}>Букв суббота</th>
+//                   <th style={thStyle}>Букв воскресенье</th>
+//                   <th style={thStyle}>Чисел воскресенье</th>
+//                 </tr>
+//               </thead>
+//               <tbody>
+//                 {results.map((row, idx) => (
+//                   <tr key={idx} style={{ borderTop: "1px solid #e5e7eb" }}>
+//                     <td style={tdStyle}>{row.fio}</td>
+//                     <td style={tdStyle}>{row.scheduleType}</td>
+//                     <td style={tdStyle}>{row.daysAssigned}</td>
+//                     <td style={tdStyle}>{row.daysWorked}</td>
+//                     <td style={tdStyle}>{row.notWorked}</td>
+//                     <td style={tdStyle}>{row.workPercent}</td>
+//                     <td style={tdStyle}>{row.kpiSum}</td>
+//                     <td style={tdStyle}>{row.kpiFinal}</td>
+//                     <td style={tdStyle}>{row.lettersWeekday}</td>
+//                     <td style={tdStyle}>{row.lettersSat}</td>
+//                     <td style={tdStyle}>{row.lettersSun}</td>
+//                     <td style={tdStyle}>{row.numbersSun}</td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+//         </div>
+//       )}
+
+//       {errorsList.length > 0 && (
+//         <div style={{ marginTop: 16 }}>
+//           <h3
+//             style={{ fontSize: 15, marginBottom: 4, color: "#b91c1c" }}
+//           >
+//             Ошибки / предупреждения
+//           </h3>
+//           <ul style={{ fontSize: 12, paddingLeft: 18 }}>
+//             {errorsList.map((err, idx) => (
+//               <li key={idx}>
+//                 <strong>{err.fio}:</strong> {err.type} — {err.details}
+//               </li>
+//             ))}
+//           </ul>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// // ===== DirectoryPage + logs & restore =====
+
+// function DirectoryPage({ token, currentUser, onAuthError, onMessage }) {
+//   const [items, setItems] = useState([]);
+//   const [filteredItems, setFilteredItems] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState("");
+
+//   const [search, setSearch] = useState("");
+//   const [filterSchedule, setFilterSchedule] = useState("all");
+//   const [filterDepartment, setFilterDepartment] = useState("");
+//   const [sortBy, setSortBy] = useState("fio"); // fio | id
+
+//   const [showAddModal, setShowAddModal] = useState(false);
+//   const [addForm, setAddForm] = useState({
+//     fio: "",
+//     kpiSum: 11000,
+//     scheduleType: "day",
+//     department: "",
+//     categoryCode: "",
+//   });
+//   const [addConfirmMode, setAddConfirmMode] = useState(false);
+
+//   const [editItem, setEditItem] = useState(null);
+//   const [editForm, setEditForm] = useState(null);
+
+//   const [deleteItem, setDeleteItem] = useState(null);
+//   const [deleteReason, setDeleteReason] = useState("уволился");
+//   const [deleteOther, setDeleteOther] = useState("");
+
+//   const [activeSubTab, setActiveSubTab] = useState("current"); // current | deleted | edited
+
+//   const [deletedLog, setDeletedLog] = useState([]);
+//   const [editedLog, setEditedLog] = useState([]);
+//   const [loadingLogs, setLoadingLogs] = useState(false);
+
+//   const isAdmin = currentUser.role === "admin";
+
+//   const applyFilters = (list, s, sched, dept, sort) => {
+//     let res = list.filter((it) => {
+//       const fio = (it.fio || "").toLowerCase();
+//       const dep = (it.department || "").toLowerCase();
+//       const schedType = (it.scheduleType || "").toLowerCase();
+
+//       if (s && !fio.includes(s.toLowerCase())) {
+//         return false;
+//       }
+//       if (sched !== "all") {
+//         if (sched === "day" && schedType !== "day") return false;
+//         if (sched === "shift" && schedType !== "shift") return false;
+//       }
+//       if (dept && !dep.includes(dept.toLowerCase())) {
+//         return false;
+//       }
+//       return true;
+//     });
+
+//     if (sort === "fio") {
+//       res = res.sort((a, b) =>
+//         (a.fio || "").localeCompare(b.fio || "", "ru")
+//       );
+//     } else if (sort === "id") {
+//       res = res.sort((a, b) => (a.id || 0) - (b.id || 0));
+//     }
+
+//     return res;
+//   };
+
+//   const reload = async () => {
+//     setError("");
+//     try {
+//       setLoading(true);
+//       const list = await fetchKpiList(token);
+//       setItems(list);
+//       setFilteredItems(
+//         applyFilters(list, search, filterSchedule, filterDepartment, sortBy)
+//       );
+//     } catch (err) {
+//       if (err.message === "AUTH_REQUIRED") {
+//         onAuthError(err);
+//       } else {
+//         setError(err.message || "Ошибка загрузки справочника");
+//       }
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const reloadLogs = async () => {
+//     setLoadingLogs(true);
+//     try {
+//       const [d, e] = await Promise.all([
+//         fetchDeletedLog(token),
+//         fetchEditedLog(token),
+//       ]);
+//       setDeletedLog(d);
+//       setEditedLog(e);
+//     } catch (err) {
+//       if (err.message === "AUTH_REQUIRED") {
+//         onAuthError(err);
+//       } else {
+//         onMessage("error", err.message || "Ошибка загрузки истории");
+//       }
+//     } finally {
+//       setLoadingLogs(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     reload();
+//     reloadLogs();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [token]);
+
+//   useEffect(() => {
+//     setFilteredItems(
+//       applyFilters(items, search, filterSchedule, filterDepartment, sortBy)
+//     );
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [items, search, filterSchedule, filterDepartment, sortBy]);
+
+//   const handleAddSubmit = () => {
+//     if (!addForm.fio.trim()) {
+//       setError(
+//         "Укажите ФИО сотрудника (как в удостоверении личности или в 1С)."
+//       );
+//       return;
+//     }
+//     if (!addForm.department.trim()) {
+//       setError("Укажите отделение сотрудника.");
+//       return;
+//     }
+//     if (!addForm.kpiSum || addForm.kpiSum <= 0) {
+//       setError("Укажите KPI сумм в тенге.");
+//       return;
+//     }
+
+//     setError("");
+//     setAddConfirmMode(true);
+//   };
+
+//   const handleAddConfirm = async () => {
+//     try {
+//       const payload = {
+//         fio: addForm.fio,
+//         kpiSum: addForm.kpiSum,
+//         scheduleType: addForm.scheduleType,
+//         department: addForm.department,
+//         categoryCode: addForm.categoryCode,
+//       };
+//       const resp = await apiAddEmployee(token, payload);
+//       onMessage("success", resp.message || "Сотрудник успешно добавлен");
+//       setShowAddModal(false);
+//       setAddConfirmMode(false);
+//       setAddForm({
+//         fio: "",
+//         kpiSum: 11000,
+//         scheduleType: "day",
+//         department: "",
+//         categoryCode: "",
+//       });
+//       await reload();
+//     } catch (err) {
+//       if (err.message === "AUTH_REQUIRED") {
+//         onAuthError(err);
+//       } else {
+//         setError(err.message || "Ошибка добавления сотрудника");
+//       }
+//     }
+//   };
+
+//   const handleEditClick = (item) => {
+//     setEditItem(item);
+//     setEditForm({
+//       id: item.id,
+//       fio: item.fio,
+//       kpiSum: item.kpiSum,
+//       scheduleType: item.scheduleType,
+//       department: item.department,
+//       categoryCode: item.categoryCode,
+//     });
+//   };
+
+//   const handleEditSave = async () => {
+//     if (!editForm) return;
+//     if (!editForm.fio.trim()) {
+//       setError("ФИО не может быть пустым.");
+//       return;
+//     }
+//     if (!editForm.department.trim()) {
+//       setError("Отделение не может быть пустым.");
+//       return;
+//     }
+
+//     try {
+//       const payload = {
+//         id: editForm.id,
+//         fio: editForm.fio,
+//         department: editForm.department,
+//         scheduleType: editForm.scheduleType,
+//         categoryCode: editForm.categoryCode,
+//       };
+//       if (isAdmin) {
+//         payload.kpiSum = editForm.kpiSum;
+//       }
+//       const resp = await apiEditEmployee(token, payload);
+//       onMessage(
+//         "success",
+//         resp.message || "Данные сотрудника успешно обновлены"
+//       );
+//       setEditItem(null);
+//       setEditForm(null);
+//       await reload();
+//       await reloadLogs();
+//     } catch (err) {
+//       if (err.message === "AUTH_REQUIRED") {
+//         onAuthError(err);
+//       } else {
+//         setError(err.message || "Ошибка редактирования");
+//       }
+//     }
+//   };
+
+//   const handleDeleteClick = (item) => {
+//     setDeleteItem(item);
+//     setDeleteReason("уволился");
+//     setDeleteOther("");
+//   };
+
+//   const handleDeleteConfirm = async () => {
+//     if (!deleteItem) return;
+//     let reason = deleteReason;
+//     if (reason === "другое") {
+//       reason = deleteOther || "другое";
+//     }
+
+//     try {
+//       const resp = await apiDeleteEmployee(token, {
+//         id: deleteItem.id,
+//         reason,
+//       });
+//       onMessage("success", resp.message || "Сотрудник успешно удалён");
+//       setDeleteItem(null);
+//       setDeleteReason("уволился");
+//       setDeleteOther("");
+//       await reload();
+//       await reloadLogs();
+//     } catch (err) {
+//       if (err.message === "AUTH_REQUIRED") {
+//         onAuthError(err);
+//       } else {
+//         setError(err.message || "Ошибка удаления");
+//       }
+//     }
+//   };
+
+//   const handleRestore = async (logRow) => {
+//     try {
+//       const payload = {
+//         fio: logRow.fio,
+//         kpiSum: logRow.kpiSum,
+//         scheduleType: logRow.scheduleType,
+//         department: logRow.department,
+//         categoryCode: logRow.categoryCode,
+//         deleted_timestamp: logRow.timestamp,
+//         deleted_by: logRow.user,
+//         deleted_reason: logRow.reason,
+//       };
+//       const resp = await apiRestoreEmployee(token, payload);
+//       onMessage("success", resp.message || "Сотрудник успешно восстановлен");
+//       await reload();
+//       await reloadLogs();
+//     } catch (err) {
+//       if (err.message === "AUTH_REQUIRED") {
+//         onAuthError(err);
+//       } else {
+//         setError(err.message || "Ошибка восстановления");
+//       }
+//     }
+//   };
+
+//   return (
+//     <div
+//       style={{
+//         backgroundColor: COLOR_CARD,
+//         borderRadius: 16,
+//         padding: 20,
+//         boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
+//       }}
+//     >
+//       <div
+//         style={{
+//           display: "flex",
+//           justifyContent: "space-between",
+//           marginBottom: 12,
+//           gap: 12,
+//           alignItems: "center",
+//         }}
+//       >
+//         <div>
+//           <h2 style={{ fontSize: 18, marginBottom: 4, color: COLOR_BLUE }}>
+//             Справочник сотрудников KPI
+//           </h2>
+//           <p style={{ fontSize: 12, color: "#6b7280", margin: 0 }}>
+//             Добавление, редактирование, удаление и восстановление сотрудников.
+//             Все операции пишутся в Excel-логи.
+//           </p>
+//         </div>
+//         <button
+//           type="button"
+//           onClick={() => {
+//             setShowAddModal(true);
+//             setAddConfirmMode(false);
+//           }}
+//           style={{
+//             height: 34,
+//             padding: "6px 12px",
+//             borderRadius: 999,
+//             border: "none",
+//             backgroundColor: COLOR_GREEN,
+//             color: "white",
+//             fontSize: 13,
+//             cursor: "pointer",
+//           }}
+//         >
+//           + Добавить сотрудника
+//         </button>
+//       </div>
+
+//       {error && (
+//         <div style={{ marginBottom: 8, color: "#b91c1c", fontSize: 13 }}>
+//           {error}
+//         </div>
+//       )}
+
+//       <div
+//         style={{
+//           display: "flex",
+//           gap: 8,
+//           marginBottom: 10,
+//           fontSize: 13,
+//         }}
+//       >
+//         <button
+//           type="button"
+//           onClick={() => setActiveSubTab("current")}
+//           style={{
+//             ...subTabBtnStyle,
+//             ...(activeSubTab === "current" ? subTabBtnActive : {}),
+//           }}
+//         >
+//           Текущий список
+//         </button>
+//         <button
+//           type="button"
+//           onClick={() => setActiveSubTab("deleted")}
+//           style={{
+//             ...subTabBtnStyle,
+//             ...(activeSubTab === "deleted" ? subTabBtnActive : {}),
+//           }}
+//         >
+//           Удалённые сотрудники
+//         </button>
+//         <button
+//           type="button"
+//           onClick={() => setActiveSubTab("edited")}
+//           style={{
+//             ...subTabBtnStyle,
+//             ...(activeSubTab === "edited" ? subTabBtnActive : {}),
+//           }}
+//         >
+//           История изменений
+//         </button>
+//       </div>
+
+//       {activeSubTab === "current" && (
+//         <>
+//           <div
+//             style={{
+//               display: "grid",
+//               gridTemplateColumns: "2fr 1fr 1fr 1fr",
+//               gap: 8,
+//               marginBottom: 12,
+//               fontSize: 13,
+//             }}
+//           >
+//             <input
+//               placeholder="Поиск по ФИО..."
+//               value={search}
+//               onChange={(e) => setSearch(e.target.value)}
+//               style={{
+//                 padding: 6,
+//                 borderRadius: 8,
+//                 border: "1px solid #d1d5db",
+//               }}
+//             />
+//             <select
+//               value={filterSchedule}
+//               onChange={(e) => setFilterSchedule(e.target.value)}
+//               style={{
+//                 padding: 6,
+//                 borderRadius: 8,
+//                 border: "1px solid #d1d5db",
+//               }}
+//             >
+//               <option value="all">Все графики</option>
+//               <option value="day">Только дневные</option>
+//               <option value="shift">Только суточные</option>
+//             </select>
+//             <input
+//               placeholder="Фильтр по отделению..."
+//               value={filterDepartment}
+//               onChange={(e) => setFilterDepartment(e.target.value)}
+//               style={{
+//                 padding: 6,
+//                 borderRadius: 8,
+//                 border: "1px solid #d1d5db",
+//               }}
+//             />
+//             <select
+//               value={sortBy}
+//               onChange={(e) => setSortBy(e.target.value)}
+//               style={{
+//                 padding: 6,
+//                 borderRadius: 8,
+//                 border: "1px solid #d1d5db",
+//               }}
+//             >
+//               <option value="fio">Сортировать по ФИО</option>
+//               <option value="id">Сортировать по ID</option>
+//             </select>
+//           </div>
+
+//           <div
+//             style={{
+//               maxHeight: 420,
+//               overflow: "auto",
+//               border: "1px solid #e5e7eb",
+//               borderRadius: 8,
+//             }}
+//           >
+//             <table
+//               style={{
+//                 width: "100%",
+//                 borderCollapse: "collapse",
+//                 fontSize: 12,
+//               }}
+//             >
+//               <thead>
+//                 <tr style={{ backgroundColor: "#e5edf8" }}>
+//                   <th style={thStyle}>ID</th>
+//                   <th style={thStyle}>ФИО</th>
+//                   <th style={thStyle}>KPI сумм</th>
+//                   <th style={thStyle}>График</th>
+//                   <th style={thStyle}>Отдел</th>
+//                   <th style={thStyle}>Категория</th>
+//                   <th style={thStyle}>Действия</th>
+//                 </tr>
+//               </thead>
+//               <tbody>
+//                 {filteredItems.map((it) => (
+//                   <tr key={it.id} style={{ borderTop: "1px solid #e5e7eb" }}>
+//                     <td style={tdStyle}>{it.id}</td>
+//                     <td style={tdStyle}>{it.fio}</td>
+//                     <td style={tdStyle}>{it.kpiSum}</td>
+//                     <td style={tdStyle}>{it.scheduleType}</td>
+//                     <td style={tdStyle}>{it.department}</td>
+//                     <td style={tdStyle}>{it.categoryCode}</td>
+//                     <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>
+//                       <button
+//                         type="button"
+//                         onClick={() => handleEditClick(it)}
+//                         style={actionBtnStyle}
+//                       >
+//                         Редактировать
+//                       </button>
+//                       <button
+//                         type="button"
+//                         onClick={() => handleDeleteClick(it)}
+//                         style={{
+//                           ...actionBtnStyle,
+//                           backgroundColor: "#fee2e2",
+//                           color: "#b91c1c",
+//                         }}
+//                       >
+//                         Удалить
+//                       </button>
+//                     </td>
+//                   </tr>
+//                 ))}
+//                 {filteredItems.length === 0 && !loading && (
+//                   <tr>
+//                     <td style={{ ...tdStyle, padding: 12 }} colSpan={7}>
+//                       Сотрудников не найдено.
+//                     </td>
+//                   </tr>
+//                 )}
+//               </tbody>
+//             </table>
+//           </div>
+
+//           {loading && (
+//             <div
+//               style={{
+//                 marginTop: 8,
+//                 fontSize: 12,
+//                 color: "#6b7280",
+//               }}
+//             >
+//               Загрузка...
+//             </div>
+//           )}
+//         </>
+//       )}
+
+//       {activeSubTab === "deleted" && (
+//         <div
+//           style={{
+//             marginTop: 4,
+//             maxHeight: 420,
+//             overflow: "auto",
+//             border: "1px solid #e5e7eb",
+//             borderRadius: 8,
+//           }}
+//         >
+//           <table
+//             style={{
+//               width: "100%",
+//               borderCollapse: "collapse",
+//               fontSize: 12,
+//             }}
+//           >
+//             <thead>
+//               <tr style={{ backgroundColor: "#fee2e2" }}>
+//                 <th style={thStyle}>Когда удалён</th>
+//                 <th style={thStyle}>Кто удалил</th>
+//                 <th style={thStyle}>ФИО</th>
+//                 <th style={thStyle}>KPI сумм</th>
+//                 <th style={thStyle}>График</th>
+//                 <th style={thStyle}>Отдел</th>
+//                 <th style={thStyle}>Причина</th>
+//                 <th style={thStyle}>Действие</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {deletedLog.map((row, idx) => (
+//                 <tr key={idx} style={{ borderTop: "1px solid #e5e7eb" }}>
+//                   <td style={tdStyle}>{row.timestamp}</td>
+//                   <td style={tdStyle}>{row.user}</td>
+//                   <td style={tdStyle}>{row.fio}</td>
+//                   <td style={tdStyle}>{row.kpiSum}</td>
+//                   <td style={tdStyle}>{row.scheduleType}</td>
+//                   <td style={tdStyle}>{row.department}</td>
+//                   <td style={tdStyle}>{row.reason}</td>
+//                   <td style={tdStyle}>
+//                     <button
+//                       type="button"
+//                       onClick={() => handleRestore(row)}
+//                       style={{
+//                         ...actionBtnStyle,
+//                         backgroundColor: "#dcfce7",
+//                         color: "#166534",
+//                       }}
+//                     >
+//                       Вернуть
+//                     </button>
+//                   </td>
+//                 </tr>
+//               ))}
+//               {deletedLog.length === 0 && !loadingLogs && (
+//                 <tr>
+//                   <td style={{ ...tdStyle, padding: 12 }} colSpan={8}>
+//                     Удалённых сотрудников нет.
+//                   </td>
+//                 </tr>
+//               )}
+//             </tbody>
+//           </table>
+//         </div>
+//       )}
+
+//       {activeSubTab === "edited" && (
+//         <div
+//           style={{
+//             marginTop: 4,
+//             maxHeight: 420,
+//             overflow: "auto",
+//             border: "1px solid #e5e7eb",
+//             borderRadius: 8,
+//           }}
+//         >
+//           <table
+//             style={{
+//               width: "100%",
+//               borderCollapse: "collapse",
+//               fontSize: 11,
+//             }}
+//           >
+//             <thead>
+//               <tr style={{ backgroundColor: "#e5edf8" }}>
+//                 <th style={thStyle}>Когда</th>
+//                 <th style={thStyle}>Кто</th>
+//                 <th style={thStyle}>ID</th>
+//                 <th style={thStyle}>ФИО (стар.)</th>
+//                 <th style={thStyle}>ФИО (нов.)</th>
+//                 <th style={thStyle}>Отдел (стар.)</th>
+//                 <th style={thStyle}>Отдел (нов.)</th>
+//                 <th style={thStyle}>График (стар.)</th>
+//                 <th style={thStyle}>График (нов.)</th>
+//                 <th style={thStyle}>KPI (стар.)</th>
+//                 <th style={thStyle}>KPI (нов.)</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {editedLog.map((row, idx) => (
+//                 <tr key={idx} style={{ borderTop: "1px solid #e5e7eb" }}>
+//                   <td style={tdStyle}>{row.timestamp}</td>
+//                   <td style={tdStyle}>{row.user}</td>
+//                   <td style={tdStyle}>{row.id}</td>
+//                   <td style={tdStyle}>{row.fio_old}</td>
+//                   <td style={tdStyle}>{row.fio_new}</td>
+//                   <td style={tdStyle}>{row.department_old}</td>
+//                   <td style={tdStyle}>{row.department_new}</td>
+//                   <td style={tdStyle}>{row.scheduleType_old}</td>
+//                   <td style={tdStyle}>{row.scheduleType_new}</td>
+//                   <td style={tdStyle}>{row.kpiSum_old}</td>
+//                   <td style={tdStyle}>{row.kpiSum_new}</td>
+//                 </tr>
+//               ))}
+//               {editedLog.length === 0 && !loadingLogs && (
+//                 <tr>
+//                   <td style={{ ...tdStyle, padding: 12 }} colSpan={11}>
+//                     История изменений пуста.
+//                   </td>
+//                 </tr>
+//               )}
+//             </tbody>
+//           </table>
+//         </div>
+//       )}
+
+//       {showAddModal && (
+//         <Modal
+//           onClose={() => {
+//             setShowAddModal(false);
+//             setAddConfirmMode(false);
+//           }}
+//         >
+//           <h3 style={{ fontSize: 16, marginBottom: 8, color: COLOR_BLUE }}>
+//             Добавить сотрудника
+//           </h3>
+//           {!addConfirmMode ? (
+//             <>
+//               <p style={{ fontSize: 12, color: "#6b7280", marginTop: 0 }}>
+//                 Укажите ФИО сотрудника{" "}
+//                 <strong>как в удостоверении личности или в 1С</strong>, а также
+//                 отделение и график работы.
+//               </p>
+//               <div style={{ display: "grid", gap: 8, fontSize: 13 }}>
+//                 <TextInput
+//                   label="ФИО"
+//                   value={addForm.fio}
+//                   onChange={(v) => setAddForm({ ...addForm, fio: v })}
+//                 />
+//                 <NumberInput
+//                   label="KPI сумм (тенге)"
+//                   value={addForm.kpiSum}
+//                   onChange={(v) => setAddForm({ ...addForm, kpiSum: v })}
+//                 />
+//                 <Select
+//                   label="График"
+//                   value={addForm.scheduleType}
+//                   onChange={(v) =>
+//                     setAddForm({ ...addForm, scheduleType: v })
+//                   }
+//                   options={[
+//                     { value: "day", label: "Дневной" },
+//                     { value: "shift", label: "Суточный" },
+//                   ]}
+//                 />
+//                 <TextInput
+//                   label="Отдел"
+//                   value={addForm.department}
+//                   onChange={(v) =>
+//                     setAddForm({ ...addForm, department: v })
+//                   }
+//                 />
+//                 <TextInput
+//                   label="Категория (код)"
+//                   value={addForm.categoryCode}
+//                   onChange={(v) =>
+//                     setAddForm({ ...addForm, categoryCode: v })
+//                   }
+//                 />
+//               </div>
+//               <div
+//                 style={{
+//                   marginTop: 12,
+//                   display: "flex",
+//                   justifyContent: "flex-end",
+//                   gap: 8,
+//                 }}
+//               >
+//                 <button
+//                   type="button"
+//                   onClick={() => {
+//                     setShowAddModal(false);
+//                     setAddConfirmMode(false);
+//                   }}
+//                   style={secondaryBtn}
+//                 >
+//                   Отмена
+//                 </button>
+//                 <button
+//                   type="button"
+//                   onClick={handleAddSubmit}
+//                   style={primaryBtn}
+//                 >
+//                   Далее
+//                 </button>
+//               </div>
+//             </>
+//           ) : (
+//             <>
+//               <p style={{ fontSize: 13, color: "#111827" }}>
+//                 Перепроверьте данные перед добавлением:
+//               </p>
+//               <ul style={{ fontSize: 13, paddingLeft: 18 }}>
+//                 <li>
+//                   <strong>ФИО:</strong> {addForm.fio}
+//                 </li>
+//                 <li>
+//                   <strong>KPI сумм:</strong> {addForm.kpiSum}
+//                 </li>
+//                 <li>
+//                   <strong>График:</strong>{" "}
+//                   {addForm.scheduleType === "day" ? "Дневной" : "Суточный"}
+//                 </li>
+//                 <li>
+//                   <strong>Отдел:</strong> {addForm.department}
+//                 </li>
+//                 <li>
+//                   <strong>Категория:</strong> {addForm.categoryCode}
+//                 </li>
+//               </ul>
+//               <p style={{ fontSize: 12, color: "#6b7280" }}>
+//                 После добавления KPI можно будет изменить только из
+//                 админ-панели.
+//               </p>
+//               <div
+//                 style={{
+//                   marginTop: 12,
+//                   display: "flex",
+//                   justifyContent: "flex-end",
+//                   gap: 8,
+//                 }}
+//               >
+//                 <button
+//                   type="button"
+//                   onClick={() => setAddConfirmMode(false)}
+//                   style={secondaryBtn}
+//                 >
+//                   Назад
+//                 </button>
+//                 <button
+//                   type="button"
+//                   onClick={handleAddConfirm}
+//                   style={primaryBtn}
+//                 >
+//                   Подтвердить
+//                 </button>
+//               </div>
+//             </>
+//           )}
+//         </Modal>
+//       )}
+
+//       {editItem && editForm && (
+//         <Modal
+//           onClose={() => {
+//             setEditItem(null);
+//             setEditForm(null);
+//           }}
+//         >
+//           <h3 style={{ fontSize: 16, marginBottom: 8, color: COLOR_BLUE }}>
+//             Редактировать сотрудника
+//           </h3>
+//           <p style={{ fontSize: 12, color: "#6b7280", marginTop: 0 }}>
+//             Можно менять ФИО, отдел и график. KPI сумм доступен для изменения
+//             только администраторам.
+//           </p>
+//           <div style={{ display: "grid", gap: 8, fontSize: 13 }}>
+//             <TextInput
+//               label="ФИО"
+//               value={editForm.fio}
+//               onChange={(v) => setEditForm({ ...editForm, fio: v })}
+//             />
+//             <NumberInput
+//               label="KPI сумм (тенге)"
+//               value={editForm.kpiSum}
+//               onChange={(v) => setEditForm({ ...editForm, kpiSum: v })}
+//               disabled={!isAdmin}
+//             />
+//             <Select
+//               label="График"
+//               value={editForm.scheduleType}
+//               onChange={(v) =>
+//                 setEditForm({ ...editForm, scheduleType: v })
+//               }
+//               options={[
+//                 { value: "day", label: "Дневной" },
+//                 { value: "shift", label: "Суточный" },
+//               ]}
+//             />
+//             <TextInput
+//               label="Отдел"
+//               value={editForm.department}
+//               onChange={(v) =>
+//                 setEditForm({ ...editForm, department: v })
+//               }
+//             />
+//             <TextInput
+//               label="Категория (код)"
+//               value={editForm.categoryCode}
+//               onChange={(v) =>
+//                 setEditForm({ ...editForm, categoryCode: v })
+//               }
+//             />
+//           </div>
+//           <div
+//             style={{
+//               marginTop: 12,
+//               display: "flex",
+//               justifyContent: "flex-end",
+//               gap: 8,
+//             }}
+//           >
+//             <button
+//               type="button"
+//               onClick={() => {
+//                 setEditItem(null);
+//                 setEditForm(null);
+//               }}
+//               style={secondaryBtn}
+//             >
+//               Отмена
+//             </button>
+//             <button
+//               type="button"
+//               onClick={handleEditSave}
+//               style={primaryBtn}
+//             >
+//               Сохранить
+//             </button>
+//           </div>
+//         </Modal>
+//       )}
+
+//       {deleteItem && (
+//         <Modal
+//           onClose={() => {
+//             setDeleteItem(null);
+//             setDeleteReason("уволился");
+//             setDeleteOther("");
+//           }}
+//         >
+//           <h3 style={{ fontSize: 16, marginBottom: 8, color: "#b91c1c" }}>
+//             Удаление сотрудника
+//           </h3>
+//           <p style={{ fontSize: 13 }}>
+//             Вы действительно хотите удалить сотрудника{" "}
+//             <strong>{deleteItem.fio}</strong> из справочника KPI?
+//           </p>
+//           <p style={{ fontSize: 12, color: "#6b7280" }}>
+//             Укажите причину удаления — она будет записана в отдельный
+//             Excel-лог.
+//           </p>
+//           <div style={{ display: "grid", gap: 8, fontSize: 13 }}>
+//             <label style={{ fontSize: 13 }}>
+//               Причина:
+//               <select
+//                 value={deleteReason}
+//                 onChange={(e) => setDeleteReason(e.target.value)}
+//                 style={{
+//                   marginTop: 4,
+//                   width: "100%",
+//                   padding: 6,
+//                   borderRadius: 8,
+//                   border: "1px solid #d1d5db",
+//                 }}
+//               >
+//                 <option value="уволился">Уволился</option>
+//                 <option value="добавлен_случайно">
+//                   Добавлен(а) случайно
+//                 </option>
+//                 <option value="другое">Другое</option>
+//               </select>
+//             </label>
+//             {deleteReason === "другое" && (
+//               <TextInput
+//                 label="Другая причина"
+//                 value={deleteOther}
+//                 onChange={(v) => setDeleteOther(v)}
+//               />
+//             )}
+//           </div>
+//           <div
+//             style={{
+//               marginTop: 12,
+//               display: "flex",
+//               justifyContent: "flex-end",
+//               gap: 8,
+//             }}
+//           >
+//             <button
+//               type="button"
+//               onClick={() => {
+//                 setDeleteItem(null);
+//                 setDeleteReason("уволился");
+//                 setDeleteOther("");
+//               }}
+//               style={secondaryBtn}
+//             >
+//               Отмена
+//             </button>
+//             <button
+//               type="button"
+//               onClick={handleDeleteConfirm}
+//               style={{ ...primaryBtn, backgroundColor: "#b91c1c" }}
+//             >
+//               Удалить
+//             </button>
+//           </div>
+//         </Modal>
+//       )}
+//     </div>
+//   );
+// }
+
+// function Modal({ children, onClose }) {
+//   return (
+//     <div
+//       style={{
+//         position: "fixed",
+//         inset: 0,
+//         backgroundColor: "rgba(15,23,42,0.45)",
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//         zIndex: 50,
+//       }}
+//     >
+//       <div
+//         style={{
+//           position: "relative",
+//           backgroundColor: COLOR_CARD,
+//           padding: 20,
+//           borderRadius: 16,
+//           boxShadow: "0 24px 60px rgba(0,0,0,0.3)",
+//           width: "min(480px, 90vw)",
+//           maxHeight: "80vh",
+//           overflowY: "auto",
+//         }}
+//       >
+//         {children}
+//         <button
+//           type="button"
+//           onClick={onClose}
+//           style={{
+//             position: "absolute",
+//             top: 10,
+//             right: 12,
+//             border: "none",
+//             background: "transparent",
+//             cursor: "pointer",
+//             fontSize: 18,
+//             color: "#6b7280",
+//           }}
+//         >
+//           ×
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+// function TextInput({ label, value, onChange }) {
+//   return (
+//     <label style={{ fontSize: 13 }}>
+//       {label}
+//       <input
+//         type="text"
+//         value={value}
+//         onChange={(e) => onChange(e.target.value)}
+//         style={{
+//           marginTop: 4,
+//           width: "100%",
+//           padding: 6,
+//           borderRadius: 8,
+//           border: "1px solid #d1d5db",
+//         }}
+//       />
+//     </label>
+//   );
+// }
+
+// function NumberInput({ label, value, onChange, disabled }) {
+//   return (
+//     <label style={{ fontSize: 13 }}>
+//       {label}
+//       <input
+//         type="number"
+//         value={value}
+//         disabled={disabled}
+//         onChange={(e) => onChange(Number(e.target.value))}
+//         style={{
+//           marginTop: 4,
+//           width: "100%",
+//           padding: 6,
+//           borderRadius: 8,
+//           border: "1px solid #d1d5db",
+//           backgroundColor: disabled ? "#f9fafb" : "white",
+//         }}
+//       />
+//     </label>
+//   );
+// }
+
+// function Select({ label, value, onChange, options }) {
+//   return (
+//     <label style={{ fontSize: 13 }}>
+//       {label}
+//       <select
+//         value={value}
+//         onChange={(e) => onChange(e.target.value)}
+//         style={{
+//           marginTop: 4,
+//           width: "100%",
+//           padding: 6,
+//           borderRadius: 8,
+//           border: "1px solid #d1d5db",
+//         }}
+//       >
+//         {options.map((opt) => (
+//           <option key={opt.value} value={opt.value}>
+//             {opt.label}
+//           </option>
+//         ))}
+//       </select>
+//     </label>
+//   );
+// }
+
+// const thStyle = {
+//   padding: "6px 8px",
+//   textAlign: "left",
+//   borderBottom: "1px solid #e5e7eb",
+//   position: "sticky",
+//   top: 0,
+//   backgroundColor: "#e5edf8",
+//   zIndex: 1,
+// };
+
+// const tdStyle = {
+//   padding: "4px 8px",
+//   textAlign: "left",
+//   whiteSpace: "nowrap",
+// };
+
+// const primaryBtn = {
+//   padding: "8px 14px",
+//   borderRadius: 999,
+//   border: "none",
+//   backgroundColor: COLOR_BLUE,
+//   color: "white",
+//   fontSize: 13,
+//   cursor: "pointer",
+// };
+
+// const secondaryBtn = {
+//   padding: "8px 14px",
+//   borderRadius: 999,
+//   border: "1px solid #d1d5db",
+//   backgroundColor: "white",
+//   color: "#374151",
+//   fontSize: 13,
+//   cursor: "pointer",
+// };
+
+// const actionBtnStyle = {
+//   padding: "4px 8px",
+//   borderRadius: 999,
+//   border: "none",
+//   backgroundColor: "#e5e7eb",
+//   color: "#111827",
+//   fontSize: 11,
+//   cursor: "pointer",
+//   marginRight: 4,
+// };
+
+// const subTabBtnStyle = {
+//   padding: "6px 10px",
+//   borderRadius: 999,
+//   border: "1px solid #e5e7eb",
+//   backgroundColor: "white",
+//   cursor: "pointer",
+// };
+
+// const subTabBtnActive = {
+//   backgroundColor: "#e0f2fe",
+//   borderColor: "#93c5fd",
+// };
+
+// export default App;

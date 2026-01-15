@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "employees",
+  "info": {
+    "singularName": "employee",
+    "pluralName": "employees",
+    "displayName": "Employee"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "fio": {
+      "type": "string",
+      "required": true
+    },
+    "kpiSum": {
+      "type": "decimal",
+      "required": true
+    },
+    "scheduleType": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "day",
+        "shift"
+      ]
+    },
+    "department": {
+      "type": "string",
+      "required": true
+    },
+    "categoryCode": {
+      "type": "string"
+    }
+  }
+}
