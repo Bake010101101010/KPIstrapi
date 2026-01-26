@@ -17,7 +17,7 @@ const fs = require('fs');
 const https = require('https');
 const http = require('http');
 
-const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:12003';
+const STRAPI_URL = process.env.STRAPI_URL || 'http://192.168.101.25:12003';
 // Токен больше не требуется - используем кастомные API endpoints без авторизации
 
 // Простая функция fetch через http/https модули Node.js

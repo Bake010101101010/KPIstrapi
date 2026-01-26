@@ -2,7 +2,7 @@
 // - автоматически подставлять Authorization
 // - красиво обрабатывать ошибки (в том числе не-JSON ответы)
 
-const API_BASE = "http://localhost:12003/api";
+const API_BASE = "http://192.168.101.25:12003/api";
 const STRAPI_BASE = API_BASE;
 
 function getAuthHeader() {

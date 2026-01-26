@@ -56,7 +56,7 @@ async function migrateEmployees() {
   });
   
   console.log('\n📝 Инструкция по миграции:');
-  console.log('1. Откройте Strapi админку: http://localhost:12003/admin');
+  console.log('1. Откройте Strapi админку: http://192.168.101.25:12003/admin');
   console.log('2. Перейдите в Content Manager → Employee');
   console.log('3. Используйте кнопку "Create new entry" для каждого сотрудника');
   console.log('   ИЛИ используйте API скрипт ниже\n');

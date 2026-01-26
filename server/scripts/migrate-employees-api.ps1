@@ -11,7 +11,7 @@ if (-not $Token) {
     Write-Host "⚠️  JWT токен не указан" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Получите токен:"
-    Write-Host "  1. Откройте http://localhost:12003/admin"
+    Write-Host "  1. Откройте http://192.168.101.25:12003/admin"
     Write-Host "  2. Войдите в систему"
     Write-Host "  3. Откройте DevTools (F12) → Application → Local Storage"
     Write-Host "  4. Найдите ключ 'jwtToken' и скопируйте значение"
