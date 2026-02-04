@@ -2,12 +2,26 @@
 // - автоматически подставлять Authorization
 // - красиво обрабатывать ошибки (в том числе не-JSON ответы)
 
-const API_BASE = "http://192.168.101.25:12003/api";
+const VITE_API_BASE =
+  typeof import.meta !== "undefined" && import.meta.env
+    ? import.meta.env.VITE_API_BASE
+    : "";
+const DEFAULT_API_BASE = `${window.location.protocol}//${window.location.hostname}:12003/api`;
+const API_BASE = VITE_API_BASE || DEFAULT_API_BASE;
 const STRAPI_BASE = API_BASE;
+
+function isAscii(value) {
+  return /^[\x00-\x7F]*$/.test(String(value || ""));
+}
 
 function getAuthHeader() {
   const token = localStorage.getItem("kpi_token");
-  if (!token) return {};
+  if (!token || !isAscii(token)) {
+    if (token) {
+      localStorage.removeItem("kpi_token");
+    }
+    return {};
+  }
   return { Authorization: `Bearer ${token}` };
 }
 
@@ -113,6 +127,9 @@ export async function apiLogin(login, password) {
   const token = data.jwt;
   const user = data.user || {};
   const username = user.username || user.email || user.id;
+  const allowedDepartments = Array.isArray(user.allowedDepartments)
+    ? user.allowedDepartments
+    : [];
   const role =
     (user.role && (user.role.name || user.type)) !== undefined
       ? String(user.role.name || user.type)
@@ -126,6 +143,7 @@ export async function apiLogin(login, password) {
     token,
     login: String(username || ""),
     role,
+    allowedDepartments,
   };
 }
 
@@ -135,27 +153,42 @@ export async function apiMe() {
     headers,
   });
   const data = await handleResponse(res);
+  const allowedDepartments = Array.isArray(data.allowedDepartments)
+    ? data.allowedDepartments
+    : [];
   return {
     login: String(data.username || data.email || ""),
     role:
       (data.role && (data.role.name || data.type)) !== undefined
         ? String(data.role.name || data.type)
         : "user",
+    allowedDepartments,
   };
 }
 
-export async function apiCalcKpiJson(formData) {
-  const res = await fetch(`${STRAPI_BASE}/kpi-calculator/calculate`, {
-    method: "POST",
+export async function apiCalcKpiJson(formData, opts = {}) {
+  const params = new URLSearchParams();
+  if (opts.department) {
+    params.set("department", opts.department);
+  }
+  if (opts.debug) {
+    params.set("debug", "1");
+  }
+  const query = params.toString();
+  const res = await fetch(
+    `${STRAPI_BASE}/kpi-calculator/calculate${query ? `?${query}` : ""}`,
+    {
+      method: "POST",
     headers: {
-      // расчёт KPI в Strapi не требует авторизации
+      ...getAuthHeader(),
     },
     body: formData,
-  });
+    }
+  );
   return handleResponse(res);
 }
 
-export async function apiCalcKpiExcel(formData, mode) {
+export async function apiCalcKpiExcel(formData, mode, opts = {}) {
   // mode: "excel" | "1c" | "buh"
   const path =
     mode === "1c"
@@ -164,7 +197,16 @@ export async function apiCalcKpiExcel(formData, mode) {
       ? "/kpi-calculator/download-buh"
       : "/kpi-calculator/download-excel";
 
-  const res = await fetch(`${STRAPI_BASE}${path}`, {
+  const params = new URLSearchParams();
+  if (opts.department) {
+    params.set("department", opts.department);
+  }
+  if (opts.debug) {
+    params.set("debug", "1");
+  }
+  const query = params.toString();
+
+  const res = await fetch(`${STRAPI_BASE}${path}${query ? `?${query}` : ""}`, {
     method: "POST",
     headers: {
       ...getAuthHeader(),
@@ -182,22 +224,38 @@ export async function apiCalcKpiExcel(formData, mode) {
 }
 
 export async function apiKpiList() {
-  const res = await fetch(`${API_BASE}/kpi-list`);
+  const res = await fetch(`${API_BASE}/kpi-list`, {
+    headers: {
+      ...getAuthHeader(),
+    },
+  });
   return handleResponse(res); // { items: [...] }
 }
 
 export async function apiDeletedLog() {
-  const res = await fetch(`${API_BASE}/kpi-deleted-log`);
+  const res = await fetch(`${API_BASE}/kpi-deleted-log`, {
+    headers: {
+      ...getAuthHeader(),
+    },
+  });
   return handleResponse(res); // { items: [...] }
 }
 
 export async function apiEditedLog() {
-  const res = await fetch(`${API_BASE}/kpi-edited-log`);
+  const res = await fetch(`${API_BASE}/kpi-edited-log`, {
+    headers: {
+      ...getAuthHeader(),
+    },
+  });
   return handleResponse(res);
 }
 
 export async function apiRestoredLog() {
-  const res = await fetch(`${API_BASE}/kpi-restored-log`);
+  const res = await fetch(`${API_BASE}/kpi-restored-log`, {
+    headers: {
+      ...getAuthHeader(),
+    },
+  });
   return handleResponse(res);
 }
 
@@ -206,6 +264,7 @@ export async function apiAddEmployee(payload) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeader(),
     },
     body: JSON.stringify(payload),
   });
@@ -217,6 +276,7 @@ export async function apiEditEmployee(payload) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeader(),
     },
     body: JSON.stringify(payload),
   });
@@ -243,6 +303,27 @@ export async function apiRestoreEmployee(payload) {
       ...getAuthHeader(),
     },
     body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function apiAccessUsers() {
+  const res = await fetch(`${API_BASE}/department-access/users`, {
+    headers: {
+      ...getAuthHeader(),
+    },
+  });
+  return handleResponse(res);
+}
+
+export async function apiUpdateUserAccess(userId, departments) {
+  const res = await fetch(`${API_BASE}/department-access/update`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify({ userId, departments }),
   });
   return handleResponse(res);
 }

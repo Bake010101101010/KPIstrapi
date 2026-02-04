@@ -1,21 +1,31 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
 /* Общий фон и шрифт */
 :root {
-  --bg: #20B2AA;
+  --bg: #f4f1ea;
+  --bg-2: #e6f1f2;
   --card-bg: #ffffff;
-
-  /* RAL 5010 + RAL 6032 */
-  --accent: #00508a; /* яркий синий */
-  --accent-soft: #e0f2ff;
-  --accent-green: #0b6e4f; /* насыщенный зелёный */
-
-  --danger: #e11d48;
+  --ink: #0f172a;
+  --muted: #6b7280;
+  --accent: #0f766e;
+  --accent-strong: #0b7285;
+  --accent-warm: #f4a261;
+  --accent-soft: rgba(15, 118, 110, 0.12);
+  --accent-green: #2a9d8f;
+  --green: #2a9d8f;
+  --text-main: var(--ink);
+  --text-muted: var(--muted);
+  --danger: #e63946;
   --warning: #f59e0b;
   --warning-ink: #92400e;
-  --warning-soft: #fffbeb;
-  --border: #d1d5db;
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --green: #059669;
+  --warning-soft: #fff7ed;
+  --border: rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.16);
+  --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.08);
+  --radius: 18px;
+  --font-body: "Manrope", "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Manrope", sans-serif;
 }
 
 *,
@@ -26,20 +36,46 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  /* фон делаем более живым: синий+зелёный градиент */
-  background: radial-gradient(
-      circle at top,
-      rgba(0, 80, 138, 0.25) 0,
-      rgba(11, 110, 79, 0.12) 45%,
-      #20B2AA 90%
-    );
-  color: var(--text-main);
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: #f4f1ea;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("/frontend/public/background.png") center/cover no-repeat;
+  opacity: 0.4;
+  z-index: 0;
+  pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 10% -10%, rgba(14, 116, 144, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 90% 0%, rgba(244, 162, 97, 0.25) 0%, transparent 40%),
+    linear-gradient(180deg, rgba(244, 241, 234, 0.85) 0%, rgba(230, 241, 242, 0.9) 100%);
+  z-index: 1;
+  pointer-events: none;
 }
 
 #root {
   min-height: 100vh;
+  position: relative;
+  z-index: 2;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 /* Страницы */
@@ -53,12 +89,9 @@ body {
 
 .page-login {
   padding: 40px 16px;
-  background: linear-gradient(
-    135deg,
-    rgba(32, 178, 170, 0.08) 0%,
-    rgba(11, 110, 79, 0.05) 50%,
-    rgba(32, 178, 170, 0.1) 100%
-  );
+  background:
+    radial-gradient(circle at 20% 0%, rgba(15, 118, 110, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(244, 162, 97, 0.22) 0%, transparent 40%);
   align-items: center;
   justify-content: center;
 }
@@ -69,12 +102,9 @@ body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(
-    circle at 50% -30%,
-    rgba(32, 178, 170, 0.25) 0%,
-    rgba(11, 110, 79, 0.1) 40%,
-    transparent 70%
-  );
+  background:
+    radial-gradient(circle at 50% -30%, rgba(15, 118, 110, 0.25) 0%, transparent 55%),
+    radial-gradient(circle at 90% 20%, rgba(244, 162, 97, 0.18) 0%, transparent 60%);
   z-index: -1;
 }
 
@@ -94,19 +124,16 @@ body {
 /* Логин */
 
 .login-card {
-  max-width: 420px;
+  max-width: 460px;
   width: 100%;
-  background: linear-gradient(
-      145deg,
-      rgba(32, 178, 170, 0.08),
-      rgba(11, 110, 79, 0.04)
-    ),
-    var(--card-bg);
-  border-radius: 28px;
-  box-shadow: 0 20px 60px rgba(32, 178, 170, 0.18), 0 0 1px rgba(0, 0, 0, 0.08);
-  padding: 40px 32px;
-  border: 1px solid rgba(32, 178, 170, 0.2);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.9));
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  padding: 42px 36px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
 }
 
 .login-logo-block {
@@ -121,13 +148,11 @@ body {
 }
 
 .login-logo-block h1 {
-  margin: 0 0 4px;
-  font-size: 24px;
+  margin: 0 0 6px;
+  font-size: 26px;
   font-weight: 700;
-  background: linear-gradient(135deg, #20B2AA, #0b6e4f);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: var(--font-display);
+  color: var(--text-main);
 }
 
 .login-logo-block p {
@@ -155,8 +180,8 @@ body {
 
 .login-form input:focus {
   outline: none;
-  border-color: #20B2AA;
-  box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
 }
 
 .btn-full {
@@ -166,17 +191,14 @@ body {
 /* Шапка приложения */
 
 .app-header {
-  background: linear-gradient(
-    180deg,
-    rgba(32, 178, 170, 0.06) 0%,
-    rgba(11, 110, 79, 0.03) 100%
-  );
-  border-bottom: 1px solid rgba(32, 178, 170, 0.12);
-  padding: 8px 0;
+  background: rgba(255, 255, 255, 0.72);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 10px 0;
   position: sticky;
   top: 0;
   z-index: 90;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .app-header-container {
@@ -206,8 +228,9 @@ body {
 .app-logo {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
-  background: rgba(32, 178, 170, 0.08);
+  border-radius: 12px;
+  background: rgba(15, 118, 110, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   padding: 4px;
   display: flex;
   align-items: center;
@@ -216,15 +239,17 @@ body {
 }
 
 .app-title {
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
   color: var(--text-main);
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .app-subtitle {
   font-size: 11px;
-  color: rgba(107, 114, 128, 0.8);
+  color: var(--text-muted);
 }
 
 .app-nav {
@@ -235,27 +260,28 @@ body {
 }
 
 .app-nav-tab {
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
-  padding: 8px 12px;
-  border-radius: 999px;
+  padding: 8px 14px;
+  border-radius: 12px;
   font-size: 13px;
   cursor: pointer;
   color: var(--text-muted);
-  transition: all 0.22s ease;
+  transition: all 0.2s ease;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .app-nav-tab:hover {
-  background: rgba(32, 178, 170, 0.12);
+  background: rgba(15, 23, 42, 0.06);
   color: var(--text-main);
+  border-color: rgba(15, 23, 42, 0.12);
 }
 
 .app-nav-tab-active {
-  background: linear-gradient(135deg, #20B2AA 0%, #0b6e4f 100%);
-  color: white;
-  box-shadow: 0 4px 14px rgba(32, 178, 170, 0.2);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
 }
 
 .header-actions {
@@ -277,9 +303,11 @@ body {
 
 .card {
   background: var(--card-bg);
-  border-radius: 20px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
-  padding: 24px 24px 28px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 26px 26px 30px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  animation: fadeUp 0.4s ease;
 }
 
 .card > h2 {
@@ -317,10 +345,11 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px 14px;
   align-items: end;
-  padding: 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.65);
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
 .month-field {
@@ -335,8 +364,15 @@ body {
 /* Формы / инпуты */
 
 .form-group label,
-.form-group input {
-  display: block;
+.form-group input,
+.form-group select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  font-size: 14px;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-group label {
@@ -356,10 +392,11 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(0, 80, 138, 0.15);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
 }
 
 .form-group input[type="file"] {
@@ -409,10 +446,10 @@ body {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 80, 138, 0.2);
-  background: rgba(0, 80, 138, 0.08);
+  border: 1px solid rgba(15, 118, 110, 0.2);
+  background: rgba(15, 118, 110, 0.08);
   font-size: 12px;
-  color: #0f172a;
+  color: var(--text-main);
 }
 
 .chip-x {
@@ -428,26 +465,31 @@ body {
 /* Кнопки */
 
 .btn {
-  border-radius: 999px;
-  border: none;
-  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 9px 14px;
   font-size: 14px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
 }
 
 .btn-primary {
-  /* комбинируем RAL 5010 + чуть RAL 6032 */
-  background: linear-gradient(135deg, var(--accent), var(--accent-green));
-  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary {
-  background: white;
+  background: #fff;
   color: var(--text-main);
   border: 1px solid var(--border);
 }
@@ -455,7 +497,7 @@ body {
 .btn-outline {
   background: transparent;
   color: var(--accent);
-  border: 1px solid var(--accent);
+  border: 1px solid rgba(15, 118, 110, 0.5);
 }
 
 .btn-danger {
@@ -464,7 +506,7 @@ body {
 }
 
 .btn-small {
-  padding: 4px 10px;
+  padding: 6px 10px;
   font-size: 12px;
 }
 
@@ -481,10 +523,11 @@ body {
 
 .table-wrapper {
   margin-top: 18px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   overflow: hidden;
   background: #fff;
+  box-shadow: var(--shadow-sm);
 }
 
 .table-wrapper.small {
@@ -498,20 +541,22 @@ table {
 }
 
 thead {
-  background: #f9fafb;
+  background: rgba(15, 23, 42, 0.04);
 }
 
 th,
 td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   text-align: left;
 }
 
 th {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 12px;
-  color: #4b5563;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* Блоки с результатами / ошибками */
@@ -587,14 +632,36 @@ th {
   border-bottom: none;
 }
 
+.debug-block {
+  margin-top: 16px;
+  border-radius: 12px;
+  border: 1px dashed rgba(15, 23, 42, 0.2);
+  background: rgba(15, 23, 42, 0.04);
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.debug-block summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.debug-block pre {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-muted);
+}
+
 /* KPI tabs */
 
 .kpi-tabs {
   display: inline-flex;
   margin-top: 12px;
   border-radius: 999px;
-  background: #eef2ff;
-  padding: 2px;
+  background: rgba(15, 23, 42, 0.06);
+  padding: 3px;
 }
 
 .kpi-tab {
@@ -604,12 +671,13 @@ th {
   border-radius: 999px;
   font-size: 13px;
   cursor: pointer;
-  color: #4b5563;
+  color: var(--text-muted);
 }
 
 .kpi-tab-active {
   background: #fff;
   color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 
 /* KPI фильтры */
@@ -622,19 +690,34 @@ th {
   align-items: center;
 }
 
+.kpi-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.kpi-count strong {
+  color: var(--text-main);
+}
+
 .kpi-search {
   flex: 1;
   min-width: 220px;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  padding: 8px 12px;
+  padding: 9px 12px;
   font-size: 14px;
+  background: #fff;
 }
 
 .kpi-select {
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  padding: 7px 10px;
+  padding: 8px 10px;
   font-size: 13px;
   background: #fff;
 }
@@ -648,7 +731,8 @@ th {
   margin-top: 16px;
 }
 
-/* Модалки */
+/* Modals */
+
 
 .modal-overlay {
   position: fixed;
@@ -662,11 +746,72 @@ th {
 
 .modal {
   background: #fff;
-  border-radius: 18px;
-  padding: 20px 22px 18px;
+  border-radius: 20px;
+  padding: 22px 24px 20px;
   max-width: 480px;
   width: 100%;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.28);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-wide {
+  max-width: 620px;
+}
+
+.empty-state {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(15, 23, 42, 0.15);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.dept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.dept-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.03);
+  font-size: 13px;
+}
+
+.dept-chip input {
+  accent-color: var(--accent);
+}
+
+.dept-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  font-weight: 600;
+}
+
+.user-email {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .modal-title {
@@ -695,14 +840,10 @@ th {
 .modal-input,
 .modal-select {
   margin-top: 4px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  padding: 7px 9px;
+  padding: 8px 10px;
   font-size: 13px;
-}
-
-.employee-form {
-  margin-top: 4px;
 }
 
 .modal-actions {
@@ -711,8 +852,6 @@ th {
   gap: 8px;
   margin-top: 8px;
 }
-
-/* Toast (по центру) */
 
 .toast-overlay {
   position: fixed;
@@ -748,6 +887,17 @@ th {
 }
 
 /* Мелочи */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 @media (max-width: 768px) {
   .app-header {

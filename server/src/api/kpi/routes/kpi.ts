@@ -1,11 +1,11 @@
-export default {
+﻿export default {
   routes: [
     {
       method: 'GET',
       path: '/kpi-list',
       handler: 'kpi.list',
       config: {
-        auth: false,
+        auth: { scope: [] },
       },
     },
     {
@@ -13,7 +13,7 @@ export default {
       path: '/kpi-add',
       handler: 'kpi.add',
       config: {
-        auth: false,
+        auth: { scope: [] },
       },
     },
     {
@@ -21,7 +21,7 @@ export default {
       path: '/kpi-edit',
       handler: 'kpi.edit',
       config: {
-        auth: false,
+        auth: { scope: [] },
       },
     },
     {
@@ -29,7 +29,7 @@ export default {
       path: '/kpi-delete',
       handler: 'kpi.remove',
       config: {
-        auth: false,
+        auth: { scope: [] },
       },
     },
     {
@@ -37,7 +37,7 @@ export default {
       path: '/kpi-restore',
       handler: 'kpi.restore',
       config: {
-        auth: false,
+        auth: { scope: [] },
       },
     },
     {
@@ -45,7 +45,7 @@ export default {
       path: '/kpi-deleted-log',
       handler: 'kpi.deletedLog',
       config: {
-        auth: false,
+        auth: { scope: [] },
       },
     },
     {
@@ -53,7 +53,7 @@ export default {
       path: '/kpi-edited-log',
       handler: 'kpi.editedLog',
       config: {
-        auth: false,
+        auth: { scope: [] },
       },
     },
     {
@@ -61,7 +61,7 @@ export default {
       path: '/kpi-restored-log',
       handler: 'kpi.restoredLog',
       config: {
-        auth: false,
+        auth: { scope: [] },
       },
     },
   ],

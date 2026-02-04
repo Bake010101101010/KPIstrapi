@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import type { Context } from 'koa';
 import { parseTimesheet } from '../services/timesheet-parser';
 import * as kpiCalculator from '../services/kpi-calculator';
+import { getUserAccess } from '../../../utils/access';
 
 declare const strapi: any;
 
@@ -52,18 +53,123 @@ function parseHolidays(raw: any): (string | number)[] {
     .filter(Boolean);
 }
 
+function getBodyField(body: any, key: string): any {
+  if (!body) return undefined;
+
+  if (body[key] !== undefined) {
+    const val = body[key];
+    return Array.isArray(val) ? val[0] : val;
+  }
+
+  const data = body.data;
+  if (data !== undefined && data !== null) {
+    if (typeof data === 'string') {
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed && parsed[key] !== undefined) {
+          const val = parsed[key];
+          return Array.isArray(val) ? val[0] : val;
+        }
+      } catch {
+        // ignore parse errors
+      }
+    } else if (typeof data === 'object' && data[key] !== undefined) {
+      const val = data[key];
+      return Array.isArray(val) ? val[0] : val;
+    }
+  }
+
+  const fields = body.fields;
+  if (fields && typeof fields === 'object' && fields[key] !== undefined) {
+    const val = fields[key];
+    return Array.isArray(val) ? val[0] : val;
+  }
+
+  return undefined;
+}
+
+function getRequestField(ctx: Context, key: string): any {
+  const body: any = (ctx.request as any).body || {};
+  const fromBody = getBodyField(body, key);
+  if (fromBody !== undefined && String(fromBody).trim() !== '') {
+    return fromBody;
+  }
+
+  const queryValue: any =
+    (ctx.request as any).query?.[key] ?? (ctx as any).query?.[key];
+  if (queryValue !== undefined) {
+    return Array.isArray(queryValue) ? queryValue[0] : queryValue;
+  }
+
+  const headerKey = `x-kpi-${key}`.toLowerCase();
+  const headerValue = (ctx.request as any).headers?.[headerKey];
+  if (headerValue !== undefined) {
+    return Array.isArray(headerValue) ? headerValue[0] : headerValue;
+  }
+
+  return undefined;
+}
+
+function normalizeDepartment(value: any): string {
+  return String(value || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[\s\-–—_]+/g, '');
+}
+
 async function calcCore(ctx: Context) {
   const body: any = (ctx.request as any).body || {};
+  const access = await getUserAccess(ctx);
+  const requestedDepartment = String(getRequestField(ctx, 'department') || '').trim();
+  const allowedDepartments = access.allowedDepartments || [];
+  const normalizedAllowed = allowedDepartments.map(normalizeDepartment).filter(Boolean);
+  const debugEnabled = String(getRequestField(ctx, 'debug') || '').trim() === '1';
+  const debug: any = debugEnabled
+    ? {
+        serverTime: new Date().toISOString(),
+        rawBodyKeys: Object.keys(body || {}),
+        bodyDepartment: body?.department,
+        bodyDataType: typeof body?.data,
+        bodyFieldsKeys: body?.fields ? Object.keys(body.fields) : [],
+        requestedDepartment,
+        allowedDepartments,
+        normalizedAllowed,
+      }
+    : null;
+  const withDebug = (payload: any) => (debug ? { ...payload, debug } : payload);
+  console.log('KPI_CALC_DEBUG rawBodyKeys:', Object.keys(body || {}));
+  if (body && typeof body === 'object') {
+    console.log('KPI_CALC_DEBUG body.department:', body.department);
+    console.log('KPI_CALC_DEBUG body.data:', body.data);
+    console.log('KPI_CALC_DEBUG body.fields:', body.fields);
+  }
+  console.log('KPI_CALC_DEBUG requestedDepartment:', requestedDepartment);
+  console.log('KPI_CALC_DEBUG allowedDepartments:', allowedDepartments);
 
-  const nchDay = parseInt(body.nchDay || '0', 10) || 0;
-  const ndShift = parseInt(body.ndShift || '0', 10) || 0;
+  if (!access.isAdmin) {
+    if (normalizedAllowed.length === 0) {
+      ctx.throw(403, 'Нет доступных отделов');
+    }
+    if (!requestedDepartment) {
+      ctx.throw(400, 'Отдел для расчёта не указан');
+    }
+    if (requestedDepartment) {
+      const requestedNorm = normalizeDepartment(requestedDepartment);
+      if (!normalizedAllowed.includes(requestedNorm)) {
+        ctx.throw(403, 'Нет доступа к указанному отделу');
+      }
+    }
+  }
+
+  const nchDay = parseInt(getRequestField(ctx, 'nchDay') || '0', 10) || 0;
+  const ndShift = parseInt(getRequestField(ctx, 'ndShift') || '0', 10) || 0;
 
   if (nchDay <= 0 && ndShift <= 0) {
     throw new Error('Нужно указать Н.ч для дневных и/или Н.д для суточных');
   }
 
-  const year = parseInt(body.year || '0', 10);
-  const month = parseInt(body.month || '0', 10);
+  const year = parseInt(getRequestField(ctx, 'year') || '0', 10);
+  const month = parseInt(getRequestField(ctx, 'month') || '0', 10);
 
   if (!year || !month || month < 1 || month > 12) {
     throw new Error('Некорректные значения года или месяца');
@@ -94,33 +200,116 @@ async function calcCore(ctx: Context) {
   console.log(`📅 Загружено праздников из Strapi для ${year}-${month}:`, strapiHolidayDates);
 
   // Объединяем с праздниками из формы (если есть)
-  const formHolidays = parseHolidays(body.holidays);
+  const formHolidays = parseHolidays(getRequestField(ctx, 'holidays'));
   const allHolidays = [...new Set([...strapiHolidayDates, ...formHolidays])];
   
   console.log(`📅 Всего праздников для расчёта:`, allHolidays);
 
   const fileBuffer = await getFileBufferFromCtx(ctx);
 
-  const employees = await parseTimesheet(fileBuffer, year, month, allHolidays);
+  const parsedEmployees = await parseTimesheet(fileBuffer, year, month, allHolidays);
+  const parsedDeptSamples = parsedEmployees
+    .map((e: any) => String(e?.department || '').trim())
+    .filter(Boolean);
+  console.log('KPI_CALC_DEBUG timesheetDeptSample:', Array.from(new Set(parsedDeptSamples)).slice(0, 12));
+  if (debug) {
+    debug.timesheetDeptSample = Array.from(new Set(parsedDeptSamples)).slice(0, 12);
+  }
 
-  const kpiTable = await strapi.entityService.findMany('api::employee.employee', {
+  let employees = parsedEmployees;
+
+
+  const kpiFilters: any = {};
+  if (!access.isAdmin && allowedDepartments.length > 0) {
+    kpiFilters.department = { $in: allowedDepartments };
+  }
+
+  const kpiQuery: any = {
     fields: ['id', 'fio', 'kpiSum', 'scheduleType', 'department', 'categoryCode'],
     publicationState: 'live',
     pagination: { pageSize: 10000 },
-  });
+  };
+  if (Object.keys(kpiFilters).length > 0) {
+    kpiQuery.filters = kpiFilters;
+  }
 
-  const { results, errors } = kpiCalculator.calculateKPI(employees, kpiTable, nchDay, ndShift);
+  const kpiTable = await strapi.entityService.findMany('api::employee.employee', kpiQuery);
+  const kpiDeptSamples = (kpiTable || [])
+    .map((e: any) => String(e?.department || '').trim())
+    .filter(Boolean);
+  console.log('KPI_CALC_DEBUG kpiDeptSample:', Array.from(new Set(kpiDeptSamples)).slice(0, 12));
+  if (debug) {
+    debug.kpiDeptSample = Array.from(new Set(kpiDeptSamples)).slice(0, 12);
+  }
 
-  return { results, errors };
+  let finalEmployees = employees;
+  let finalKpiTable = kpiTable;
+
+  if (requestedDepartment) {
+    const target = normalizeDepartment(requestedDepartment);
+    finalKpiTable = (kpiTable || []).filter(
+      (item: any) => normalizeDepartment(item?.department) === target
+    );
+
+    const kpiFioSet = new Set(
+      finalKpiTable.map((item: any) => String(item?.fio || '').trim().toLowerCase()).filter(Boolean)
+    );
+
+    finalEmployees = employees.filter((emp: any) =>
+      kpiFioSet.has(String(emp?.fio || '').trim().toLowerCase())
+    );
+
+    if (finalEmployees.length === 0) {
+      return withDebug({
+        results: [],
+        errors: [
+          {
+            fio: '',
+            type: 'NO_EMPLOYEES',
+            details: `Нету никого в отделе ${requestedDepartment}`,
+          },
+        ],
+      });
+    }
+  }
+
+  let { results, errors } = kpiCalculator.calculateKPI(
+    finalEmployees,
+    finalKpiTable,
+    nchDay,
+    ndShift
+  );
+
+  if (requestedDepartment) {
+    const target = normalizeDepartment(requestedDepartment);
+    const filteredResults = (results || []).filter(
+      (r: any) => normalizeDepartment(r?.department) === target
+    );
+    if (filteredResults.length === 0) {
+      return withDebug({
+        results: [],
+        errors: [
+          {
+            fio: '',
+            type: 'NO_EMPLOYEES',
+            details: `Нету никого в отделе ${requestedDepartment}`,
+          },
+        ],
+      });
+    }
+    results = filteredResults;
+  }
+
+  return withDebug({ results, errors });
 }
 
 export default {
   async calculate(ctx: Context) {
     try {
-      const { results, errors } = await calcCore(ctx);
-      ctx.body = { results, errors };
+      const payload = await calcCore(ctx);
+      ctx.body = payload;
     } catch (error: any) {
-      ctx.status = 400;
+      ctx.status = error?.status || 400;
       ctx.body = { error: error.message || 'Ошибка расчёта KPI' };
     }
   },
@@ -188,7 +377,7 @@ export default {
       );
       ctx.body = buffer;
     } catch (error: any) {
-      ctx.status = 400;
+      ctx.status = error?.status || 400;
       ctx.body = { error: error.message || 'Ошибка формирования файла' };
     }
   },
@@ -217,7 +406,7 @@ export default {
       );
       ctx.body = buffer;
     } catch (error: any) {
-      ctx.status = 400;
+      ctx.status = error?.status || 400;
       ctx.body = { error: error.message || 'Ошибка формирования файла для 1С' };
     }
   },
@@ -273,7 +462,7 @@ export default {
       );
       ctx.body = buffer;
     } catch (error: any) {
-      ctx.status = 400;
+      ctx.status = error?.status || 400;
       ctx.body = {
         error: error.message || 'Ошибка формирования файла для бухгалтерии',
       };

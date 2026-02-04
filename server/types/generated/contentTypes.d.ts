@@ -1163,6 +1163,7 @@ export interface PluginUsersPermissionsUser
     timestamps: true;
   };
   attributes: {
+    allowedDepartments: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;

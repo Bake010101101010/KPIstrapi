@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   apiLogin,
   apiMe,
@@ -15,6 +15,8 @@ import {
   apiHolidays,
   apiAddHoliday,
   apiDeleteHoliday,
+  apiAccessUsers,
+  apiUpdateUserAccess,
 } from "./api";
 
 // ======================= Toast (по центру) =======================
@@ -220,6 +222,75 @@ function EmployeeFormModal({ initial, mode, onCancel, onSave }) {
   );
 }
 
+// ======================= Модалка доступа к отделам =======================
+
+function AccessModal({ user, departments, onCancel, onSave }) {
+  const [selected, setSelected] = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const list = Array.isArray(user.allowedDepartments)
+      ? user.allowedDepartments
+      : [];
+    setSelected(list);
+  }, [user]);
+
+  if (!user) return null;
+
+  const toggleDept = (dept) => {
+    setSelected((prev) => {
+      if (prev.includes(dept)) {
+        return prev.filter((d) => d !== dept);
+      }
+      return [...prev, dept];
+    });
+  };
+
+  const allDepts = Array.isArray(departments) ? departments : [];
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
+        <h3 className="modal-title">Доступ к отделам</h3>
+        <p className="modal-subtext">
+          Пользователь: <strong>{user.username || user.email}</strong>
+        </p>
+
+        {allDepts.length === 0 ? (
+          <div className="empty-state">
+            Нет отделов для настройки. Добавьте сотрудников с отделами.
+          </div>
+        ) : (
+          <div className="dept-grid">
+            {allDepts.map((dept) => (
+              <label key={dept} className="dept-chip">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(dept)}
+                  onChange={() => toggleDept(dept)}
+                />
+                <span>{dept}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        <div className="modal-actions">
+          <button className="btn btn-secondary" onClick={onCancel}>
+            Отмена
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => onSave(user, selected)}
+          >
+            Сохранить
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ======================= Основное приложение =======================
 
 export default function App() {
@@ -244,6 +315,7 @@ export default function App() {
   const [holidays, setHolidays] = useState([]); // Массив объектов {id, date}
   const [calcResults, setCalcResults] = useState([]);
   const [calcErrors, setCalcErrors] = useState([]);
+  const [calcDepartment, setCalcDepartment] = useState("");
 
   // --- состояние справочника KPI ---
   const [kpiItems, setKpiItems] = useState([]);
@@ -260,6 +332,19 @@ export default function App() {
   const [deleteModalEmployee, setDeleteModalEmployee] = useState(null);
   const [formMode, setFormMode] = useState(null); // "add" | "edit"
   const [formInitial, setFormInitial] = useState(null);
+
+  // --- Состояние доступа к отделам ---
+  const [accessUsers, setAccessUsers] = useState([]);
+  const [accessModalUser, setAccessModalUser] = useState(null);
+  const [accessLoading, setAccessLoading] = useState(false);
+
+  const isAdmin =
+    String(user?.role || "")
+      .toLowerCase()
+      .includes("admin") ||
+    String(user?.login || "")
+      .toLowerCase()
+      .startsWith("admin");
 
   const formatChange = (oldVal, newVal) => {
     const oldStr =
@@ -300,6 +385,20 @@ export default function App() {
 
   const calcIssues = (calcErrors || []).map(normalizeCalcError);
 
+  const normalizeDept = (value) =>
+    String(value || "")
+      .trim()
+      .toUpperCase()
+      .replace(/[\s\-–—_]+/g, "");
+
+  const filterResultsByDept = (items, dept) => {
+    if (!dept) return items || [];
+    const target = normalizeDept(dept);
+    return (items || []).filter(
+      (r) => normalizeDept(r?.department) === target
+    );
+  };
+
   useEffect(() => {
     const y = parseInt(year, 10);
     const m = parseInt(month, 10);
@@ -326,7 +425,11 @@ export default function App() {
     }
     apiMe()
       .then((data) => {
-        setUser({ login: data.login, role: data.role });
+        setUser({
+          login: data.login,
+          role: data.role,
+          allowedDepartments: data.allowedDepartments || [],
+        });
       })
       .catch(() => {
         localStorage.removeItem("kpi_token");
@@ -343,7 +446,11 @@ export default function App() {
     try {
       const data = await apiLogin(loginForm.login, loginForm.password);
       localStorage.setItem("kpi_token", data.token);
-      setUser({ login: data.login, role: data.role });
+      setUser({
+        login: data.login,
+        role: data.role,
+        allowedDepartments: data.allowedDepartments || [],
+      });
       showToast("Успешный вход в систему");
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
@@ -358,25 +465,57 @@ export default function App() {
     setDeletedItems([]);
     setEditedItems([]);
     setRestoredItems([]);
+    setAccessUsers([]);
+    setAccessModalUser(null);
   };
 
   // =================== Загрузка справочника KPI ===================
 
   const reloadKpiAll = async () => {
+    const [listRes, delRes, editRes, restRes] = await Promise.allSettled([
+      apiKpiList(),
+      apiDeletedLog(),
+      apiEditedLog(),
+      apiRestoredLog(),
+    ]);
+
+    if (listRes.status === "fulfilled") {
+      setKpiItems(listRes.value.items || listRes.value || []);
+    } else {
+      setKpiItems([]);
+      const errorMsg =
+        listRes.reason instanceof Error
+          ? listRes.reason.message
+          : String(listRes.reason || "");
+      showToast(errorMsg || "Ошибка загрузки списка сотрудников", "error");
+    }
+
+    setDeletedItems(
+      delRes.status === "fulfilled" ? delRes.value.items || delRes.value || [] : []
+    );
+    setEditedItems(
+      editRes.status === "fulfilled"
+        ? editRes.value.items || editRes.value || []
+        : []
+    );
+    setRestoredItems(
+      restRes.status === "fulfilled"
+        ? restRes.value.items || restRes.value || []
+        : []
+    );
+  };
+
+  const loadAccessUsers = async () => {
+    if (!isAdmin) return;
+    setAccessLoading(true);
     try {
-      const [listRes, delRes, editRes, restRes] = await Promise.all([
-        apiKpiList(),
-        apiDeletedLog(),
-        apiEditedLog(),
-        apiRestoredLog(),
-      ]);
-      setKpiItems(listRes.items || listRes || []);
-      setDeletedItems(delRes.items || delRes || []);
-      setEditedItems(editRes.items || editRes || []);
-      setRestoredItems(restRes.items || restRes || []);
+      const res = await apiAccessUsers();
+      setAccessUsers(res.items || res || []);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      showToast(errorMsg || "Ошибка загрузки справочника KPI", "error");
+      showToast(errorMsg || "Ошибка загрузки доступов", "error");
+    } finally {
+      setAccessLoading(false);
     }
   };
 
@@ -386,11 +525,21 @@ export default function App() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user && isAdmin) {
+      loadAccessUsers();
+    }
+  }, [user, isAdmin]);
+
   // =================== Расчёт KPI по табелю ===================
 
   const handleCalc = async () => {
     if (!timesheetFile) {
       showToast("Пожалуйста, выберите файл табеля", "error");
+      return;
+    }
+    if (!calcDepartment) {
+      showToast("Выберите отдел для расчёта", "error");
       return;
     }
     try {
@@ -400,14 +549,36 @@ export default function App() {
       fd.append("ndShift", ndShift || "0");
       fd.append("year", year);
       fd.append("month", month);
+      if (calcDepartment) {
+        fd.append("department", calcDepartment);
+      }
+      fd.append("debug", "1");
       // Отправляем только даты (массив строк)
       const holidayDates = holidays.map((h) => h.date || h).filter(Boolean);
       fd.append("holidays", JSON.stringify(holidayDates));
 
-      const data = await apiCalcKpiJson(fd);
-      setCalcResults(data.results || []);
+      const data = await apiCalcKpiJson(fd, {
+        department: calcDepartment || "",
+        debug: true,
+      });
+      const rawResults = data.results || [];
+      const filteredResults = filterResultsByDept(rawResults, calcDepartment);
+      setCalcResults(filteredResults);
       setCalcErrors(data.errors || []);
-      showToast("Расчёт KPI выполнен");
+      const deptError = (data.errors || []).find(
+        (e) =>
+          e && (e.type === "NO_EMPLOYEES" || e.type === "NO_DEPARTMENT_COLUMN")
+      );
+      if (deptError) {
+        showToast(
+          deptError.details || "Нет сотрудников в выбранном отделе",
+          "error"
+        );
+      } else if (calcDepartment && filteredResults.length === 0) {
+        showToast(`Нету никого в отделе ${calcDepartment}`, "error");
+      } else {
+        showToast("Расчёт KPI выполнен");
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       showToast(errorMsg || "Ошибка расчёта KPI", "error");
@@ -419,6 +590,10 @@ export default function App() {
       showToast("Пожалуйста, выберите файл табеля", "error");
       return;
     }
+    if (!calcDepartment) {
+      showToast("Выберите отдел для расчёта", "error");
+      return;
+    }
     try {
       const fd = new FormData();
       fd.append("timesheet", timesheetFile);
@@ -426,11 +601,17 @@ export default function App() {
       fd.append("ndShift", ndShift || "0");
       fd.append("year", year);
       fd.append("month", month);
+      if (calcDepartment) {
+        fd.append("department", calcDepartment);
+      }
       // Отправляем только даты (массив строк)
       const holidayDates = holidays.map((h) => h.date || h).filter(Boolean);
       fd.append("holidays", JSON.stringify(holidayDates));
 
-      const blob = await apiCalcKpiExcel(fd, mode);
+      const blob = await apiCalcKpiExcel(fd, mode, {
+        department: calcDepartment || "",
+        debug: true,
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -479,9 +660,44 @@ export default function App() {
       return fa.localeCompare(fb, "ru");
     });
 
-  const allDepartments = Array.from(
-    new Set(kpiItems.map((x) => x.department || "").filter(Boolean))
+  const allDepartments = useMemo(
+    () =>
+      Array.from(new Set(kpiItems.map((x) => x.department || "").filter(Boolean))).sort(
+        (a, b) => String(a).localeCompare(String(b), "ru")
+      ),
+    [kpiItems]
   );
+
+  useEffect(() => {
+    if (!user) return;
+    if (!allDepartments || allDepartments.length === 0) {
+      setCalcDepartment("");
+      return;
+    }
+
+    if (!calcDepartment || !allDepartments.includes(calcDepartment)) {
+      setCalcDepartment(allDepartments[0] || "");
+    }
+  }, [user, allDepartments, calcDepartment]);
+
+  useEffect(() => {
+    if (!allDepartments || allDepartments.length === 0) {
+      setCalcDepartment("");
+      return;
+    }
+    if (!filterDept) {
+      setCalcDepartment(allDepartments[0] || "");
+      return;
+    }
+    if (allDepartments.includes(filterDept)) {
+      setCalcDepartment(filterDept);
+    }
+  }, [filterDept, allDepartments]);
+
+  useEffect(() => {
+    setCalcResults([]);
+    setCalcErrors([]);
+  }, [calcDepartment, timesheetFile]);
 
   const openAddForm = () => {
     setFormInitial(null);
@@ -491,6 +707,34 @@ export default function App() {
   const openEditForm = (item) => {
     setFormInitial(item);
     setFormMode("edit");
+  };
+
+  const openAccessModal = (accessUser) => {
+    setAccessModalUser(accessUser);
+  };
+
+  const handleAccessSave = async (accessUser, departments) => {
+    if (!accessUser) return;
+    try {
+      await apiUpdateUserAccess(accessUser.id, departments || []);
+      const updated = accessUsers.map((u) =>
+        u.id === accessUser.id
+          ? { ...u, allowedDepartments: departments || [] }
+          : u
+      );
+      setAccessUsers(updated);
+      if (user && accessUser.id === user.id) {
+        setUser({
+          ...user,
+          allowedDepartments: departments || [],
+        });
+      }
+      showToast("Доступы обновлены");
+      setAccessModalUser(null);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      showToast(errorMsg || "Ошибка сохранения доступов", "error");
+    }
   };
 
   const handleFormSave = async (payload) => {
@@ -618,8 +862,8 @@ export default function App() {
   }
 
   return (
-    <div className="page page-app">
-      <header className="app-header">
+<>
+          <header className="app-header">
         <div className="app-header-container">
           <div className="app-header-left">
             <img src="/logo.png" alt="ННМЦ" className="app-logo" />
@@ -645,6 +889,17 @@ export default function App() {
           >
             Справочник сотрудников / История изменений
           </button>
+          {isAdmin && (
+            <button
+              className={
+                "app-nav-tab" +
+                (activeTab === "access" ? " app-nav-tab-active" : "")
+              }
+              onClick={() => setActiveTab("access")}
+            >
+              Доступы к отделам
+            </button>
+          )}
           </nav>
           <div className="header-actions">
             <button className="btn btn-secondary" onClick={handleLogout}>
@@ -653,6 +908,8 @@ export default function App() {
           </div>
         </div>
       </header>
+    <div className="page page-app">
+
 
       <main className="app-main">
         {activeTab === "calc" && (
@@ -710,6 +967,21 @@ export default function App() {
                   max={12}
                   onChange={(e) => setMonth(e.target.value)}
                 />
+              </div>
+
+              <div className="form-group">
+                <label>Отдел для расчёта:</label>
+                <select
+                  value={calcDepartment}
+                  onChange={(e) => setCalcDepartment(e.target.value)}
+                  disabled={allDepartments.length === 0}
+                >
+                  {allDepartments.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group holiday-field">
@@ -901,6 +1173,7 @@ export default function App() {
                 </div>
               </div>
             )}
+
           </section>
         )}
 
@@ -984,12 +1257,16 @@ export default function App() {
                   >
                     Сортировать по: {sortBy === "fio" ? "ФИО" : "ID"}
                   </button>
+                  <div className="kpi-count">
+                    Всего: <strong>{filteredKpiItems.length}</strong>
+                  </div>
                 </div>
 
                 <div className="table-wrapper">
                   <table>
                     <thead>
                       <tr>
+                        <th>#</th>
                         <th>ID</th>
                         <th>ФИО</th>
                         <th>KPI сумм</th>
@@ -1002,13 +1279,14 @@ export default function App() {
                     <tbody>
                       {filteredKpiItems.length === 0 && (
                         <tr>
-                          <td colSpan={7} style={{ textAlign: "center" }}>
+                          <td colSpan={8} style={{ textAlign: "center" }}>
                             Сотрудников не найдено.
                           </td>
                         </tr>
                       )}
-                      {filteredKpiItems.map((emp) => (
+                      {filteredKpiItems.map((emp, idx) => (
                         <tr key={emp.id}>
+                          <td>{idx + 1}</td>
                           <td>{emp.id}</td>
                           <td>{emp.fio}</td>
                           <td>{emp.kpiSum}</td>
@@ -1171,6 +1449,90 @@ export default function App() {
             )}
           </section>
         )}
+
+        {activeTab === "access" && isAdmin && (
+          <section className="card">
+            <div className="card-header-row">
+              <div>
+                <h2>Доступы к отделам</h2>
+                <p className="card-subtitle">
+                  Настройте, какие отделы доступны каждому пользователю.
+                </p>
+              </div>
+              <button
+                className="btn btn-secondary"
+                onClick={loadAccessUsers}
+                disabled={accessLoading}
+              >
+                Обновить
+              </button>
+            </div>
+
+            {accessLoading ? (
+              <div className="empty-state">Загрузка списка...</div>
+            ) : (
+              <div className="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Пользователь</th>
+                      <th>Роль</th>
+                      <th>Отделы</th>
+                      <th>Действия</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(!accessUsers || accessUsers.length === 0) && (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: "center" }}>
+                          Пользователей нет.
+                        </td>
+                      </tr>
+                    )}
+                    {accessUsers &&
+                      accessUsers.map((u) => (
+                        <tr key={u.id}>
+                          <td>
+                            <div className="user-cell">
+                              <div className="user-name">
+                                {u.username || u.email || "ID " + u.id}
+                              </div>
+                              <div className="user-email">{u.email}</div>
+                            </div>
+                          </td>
+                          <td>{u.role || "—"}</td>
+                          <td>
+                            <div className="dept-chips">
+                              {Array.isArray(u.allowedDepartments) &&
+                              u.allowedDepartments.length > 0 ? (
+                                u.allowedDepartments.map((d) => (
+                                  <span className="chip" key={
+                                    String(u.id) + "-" + String(d)
+                                  }>
+                                    {d}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="muted">Нет</span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-small"
+                              onClick={() => openAccessModal(u)}
+                            >
+                              Настроить
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
       </main>
 
       <Toast message={toast} onClose={() => setToast(null)} />
@@ -1188,6 +1550,13 @@ export default function App() {
         }}
         onSave={handleFormSave}
       />
+      <AccessModal
+        user={accessModalUser}
+        departments={allDepartments}
+        onCancel={() => setAccessModalUser(null)}
+        onSave={handleAccessSave}
+      />
     </div>
+</>
   );
 }

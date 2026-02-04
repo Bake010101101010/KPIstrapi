@@ -9,6 +9,7 @@ interface Holiday {
 
 interface ParsedEmployee {
   fio: string;
+  department?: string;
   letters_weekday: number;
   letters_sat: number;
   letters_sun: number;
@@ -115,6 +116,37 @@ function tryFloat(val: any): number | null {
   }
 }
 
+
+function normalizeHeader(value: any): string {
+  return String(value || '').trim().toLowerCase();
+}
+
+function findDepartmentColumn(headerRow: ExcelJS.Row): number | null {
+  const keys = [
+    'отдел',
+    'отделение',
+    'подраздел',
+    'подразделение',
+    'департамент',
+    'department',
+    'dept',
+    'бөлім',
+    'болим',
+    'бөлімше',
+    'болимше',
+  ];
+
+  for (let j = 1; j <= headerRow.cellCount; j++) {
+    const header = normalizeHeader(headerRow.getCell(j).value);
+    if (!header) continue;
+    if (keys.some((k) => header.includes(k))) {
+      return j;
+    }
+  }
+
+  return null;
+}
+
 export async function parseTimesheet(
   fileBuffer: Buffer,
   year: number,
@@ -177,6 +209,7 @@ function parseKazakhTemplate(
 ): ParsedEmployee[] {
   const headerRow = worksheet.getRow(headerRowIdx + 1);
   let fioCol: number | null = null;
+  const deptCol = findDepartmentColumn(headerRow);
 
   // Find FIO column
   for (let j = 1; j <= worksheet.columnCount; j++) {
@@ -236,8 +269,12 @@ function parseKazakhTemplate(
     const fio = String(fioRaw).trim();
     if (!fio) continue;
 
+    const department =
+      deptCol ? String(row.getCell(deptCol).value || '').trim() || undefined : undefined;
+
     const emp: ParsedEmployee = {
       fio,
+      department,
       letters_weekday: 0,
       letters_sat: 0,
       letters_sun: 0,
@@ -297,6 +334,7 @@ function parseSimpleTemplate(
 ): ParsedEmployee[] {
   const headerRow = worksheet.getRow(1);
   let employeeCol: number | null = null;
+  const departmentCol = findDepartmentColumn(headerRow);
   const dayCols: Array<{ col: number; day: number }> = [];
 
   // Find columns
@@ -329,6 +367,7 @@ function parseSimpleTemplate(
 
     const emp: ParsedEmployee = {
       fio,
+      department: departmentCol ? String(row.getCell(departmentCol).value || '').trim() || undefined : undefined,
       letters_weekday: 0,
       letters_sat: 0,
       letters_sun: 0,

@@ -1,4 +1,5 @@
 import type { Context } from 'koa';
+import { getUserAccess } from '../../../utils/access';
 
 declare const strapi: any;
 
@@ -23,9 +24,25 @@ function parseNumber(value: any): number | null {
 export default {
   // GET /api/kpi-list
   async list(ctx: Context) {
+    const access = await getUserAccess(ctx);
+    const reqUser = (ctx.state as any)?.user || {};
+    console.log('[KPI_LIST] request by', { id: reqUser.id, username: reqUser.username, email: reqUser.email, role: access.roleName, isAdmin: access.isAdmin, allowedDepartments: access.allowedDepartments });
+    const filters: any = {};
+
+    if (!access.isAdmin) {
+      if (!access.allowedDepartments || access.allowedDepartments.length === 0) {
+        ctx.body = { items: [] };
+        return;
+      }
+      filters.department = { $in: access.allowedDepartments };
+    }
+
     const employees = await strapi.entityService.findMany('api::employee.employee', {
       pagination: { pageSize: 10000 },
+      filters,
     });
+
+    console.log('[KPI_LIST] employees fetched', { count: (employees || []).length, sample: (employees || []).slice(0, 5).map((e: any) => ({ id: e.id, fio: e.fio, department: e.department })) });
 
     const items = (employees || []).map((e: any) => ({
       id: e.id,
@@ -68,6 +85,14 @@ export default {
 
       if (!department) {
         ctx.throw(400, 'Укажите отделение');
+      }
+
+      const access = await getUserAccess(ctx);
+      if (!access.isAdmin) {
+        const allowed = access.allowedDepartments || [];
+        if (!allowed.includes(department)) {
+          ctx.throw(403, 'Нет доступа к указанному отделу');
+        }
       }
 
       console.log('✅ Валидация пройдена. Данные:', { fio, kpiSum, scheduleType, department, categoryCode });
@@ -153,6 +178,14 @@ export default {
         ctx.throw(400, 'Сотрудник с таким id не найден.');
       }
 
+      const access = await getUserAccess(ctx);
+      if (!access.isAdmin) {
+        const allowed = access.allowedDepartments || [];
+        if (!allowed.includes(existing.department)) {
+          ctx.throw(403, 'Нет доступа к отделу сотрудника');
+        }
+      }
+
       const updates: any = {};
 
       if (body.fio !== undefined) {
@@ -167,6 +200,12 @@ export default {
         const department = String(body.department || '').trim();
         if (!department) {
           ctx.throw(400, 'Отделение не может быть пустым');
+        }
+        if (!access.isAdmin) {
+          const allowed = access.allowedDepartments || [];
+          if (!allowed.includes(department)) {
+            ctx.throw(403, 'Нет доступа к указанному отделу');
+          }
         }
         updates.department = department;
       }
@@ -243,6 +282,14 @@ export default {
         ctx.throw(400, 'Сотрудник с таким id не найден.');
       }
 
+      const access = await getUserAccess(ctx);
+      if (!access.isAdmin) {
+        const allowed = access.allowedDepartments || [];
+        if (!allowed.includes(existing.department)) {
+          ctx.throw(403, 'Нет доступа к отделу сотрудника');
+        }
+      }
+
       const reason = String(body.reason || '').trim() || 'не указано';
 
       await strapi.entityService.delete('api::employee.employee', empId);
@@ -296,7 +343,23 @@ export default {
         pagination: { pageSize: 1000 },
       });
 
-      const items = (logs || []).map((l: any) => ({
+      const access = await getUserAccess(ctx);
+      let filteredLogs: any[] = logs || [];
+      if (!access.isAdmin) {
+        const allowed = access.allowedDepartments || [];
+        if (allowed.length === 0) {
+          ctx.body = { items: [] };
+          return;
+        }
+        const allowedSet = new Set(allowed);
+        filteredLogs = filteredLogs.filter(
+          (l: any) =>
+            allowedSet.has(l?.oldData?.department) ||
+            allowedSet.has(l?.newData?.department)
+        );
+      }
+
+      const items = filteredLogs.map((l: any) => ({
         timestamp: l.timestamp,
         user: l.user,
         fio: l.oldData?.fio,
@@ -324,7 +387,23 @@ export default {
         pagination: { pageSize: 1000 },
       });
 
-      const items = (logs || []).map((l: any) => ({
+      const access = await getUserAccess(ctx);
+      let filteredLogs: any[] = logs || [];
+      if (!access.isAdmin) {
+        const allowed = access.allowedDepartments || [];
+        if (allowed.length === 0) {
+          ctx.body = { items: [] };
+          return;
+        }
+        const allowedSet = new Set(allowed);
+        filteredLogs = filteredLogs.filter(
+          (l: any) =>
+            allowedSet.has(l?.oldData?.department) ||
+            allowedSet.has(l?.newData?.department)
+        );
+      }
+
+      const items = filteredLogs.map((l: any) => ({
         timestamp: l.timestamp,
         user: l.user,
         fio_old: l.oldData?.fio,
@@ -356,7 +435,23 @@ export default {
         pagination: { pageSize: 1000 },
       });
 
-      const items = (logs || []).map((l: any) => ({
+      const access = await getUserAccess(ctx);
+      let filteredLogs: any[] = logs || [];
+      if (!access.isAdmin) {
+        const allowed = access.allowedDepartments || [];
+        if (allowed.length === 0) {
+          ctx.body = { items: [] };
+          return;
+        }
+        const allowedSet = new Set(allowed);
+        filteredLogs = filteredLogs.filter(
+          (l: any) =>
+            allowedSet.has(l?.oldData?.department) ||
+            allowedSet.has(l?.newData?.department)
+        );
+      }
+
+      const items = filteredLogs.map((l: any) => ({
         timestamp: l.timestamp,
         user: l.user,
         fio: l.newData?.fio,
@@ -398,6 +493,14 @@ export default {
 
       if (!department) {
         ctx.throw(400, 'Укажите отделение');
+      }
+
+      const access = await getUserAccess(ctx);
+      if (!access.isAdmin) {
+        const allowed = access.allowedDepartments || [];
+        if (!allowed.includes(department)) {
+          ctx.throw(403, 'Нет доступа к указанному отделу');
+        }
       }
 
       const created = await strapi.entityService.create('api::employee.employee', {
@@ -447,4 +550,5 @@ export default {
     }
   },
 };
+
 
