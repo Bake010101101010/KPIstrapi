@@ -705,6 +705,50 @@ export interface ApiLogEntryLogEntry extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiReportSettingReportSetting extends Struct.SingleTypeSchema {
+  collectionName: 'report_settings';
+  info: {
+    description: 'Protocol/report template settings';
+    displayName: 'Report Setting';
+    pluralName: 'report-settings';
+    singularName: 'report-setting';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    agendaText: Schema.Attribute.Text;
+    commissionMembers: Schema.Attribute.Component<
+      'report.commission-member',
+      true
+    >;
+    coordinatorRole: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    departmentTitle: Schema.Attribute.String;
+    footerText: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::report-setting.report-setting'
+    > &
+      Schema.Attribute.Private;
+    meetingDateOverrides: Schema.Attribute.Component<
+      'report.meeting-date',
+      true
+    >;
+    meetingTitle: Schema.Attribute.String;
+    place: Schema.Attribute.String;
+    protocolNumber: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    secretaryName: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -1224,6 +1268,7 @@ declare module '@strapi/strapi' {
       'api::global.global': ApiGlobalGlobal;
       'api::holiday.holiday': ApiHolidayHoliday;
       'api::log-entry.log-entry': ApiLogEntryLogEntry;
+      'api::report-setting.report-setting': ApiReportSettingReportSetting;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

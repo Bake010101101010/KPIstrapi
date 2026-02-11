@@ -223,6 +223,36 @@ export async function apiCalcKpiExcel(formData, mode, opts = {}) {
   return blob;
 }
 
+export async function apiCalcKpiBuhPdf(formData, opts = {}) {
+  const params = new URLSearchParams();
+  if (opts.department) {
+    params.set("department", opts.department);
+  }
+  if (opts.debug) {
+    params.set("debug", "1");
+  }
+  const query = params.toString();
+
+  const res = await fetch(
+    `${STRAPI_BASE}/kpi-calculator/download-buh-pdf${query ? `?${query}` : ""}`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeader(),
+      },
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+
+  const blob = await res.blob();
+  return blob;
+}
+
 export async function apiKpiList() {
   const res = await fetch(`${API_BASE}/kpi-list`, {
     headers: {

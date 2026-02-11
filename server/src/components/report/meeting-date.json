@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_report_meeting_dates",
+  "info": {
+    "displayName": "Meeting date",
+    "icon": "calendar"
+  },
+  "options": {},
+  "attributes": {
+    "year": {
+      "type": "integer",
+      "min": 2000,
+      "max": 2100
+    },
+    "month": {
+      "type": "integer",
+      "min": 1,
+      "max": 12
+    },
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "note": {
+      "type": "string"
+    }
+  }
+}

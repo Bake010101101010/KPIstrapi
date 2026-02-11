@@ -1,5 +1,46 @@
 import type { Schema, Struct } from '@strapi/strapi';
 
+export interface ReportCommissionMember extends Struct.ComponentSchema {
+  collectionName: 'components_report_commission_members';
+  info: {
+    displayName: 'Commission member';
+    icon: 'user';
+  };
+  attributes: {
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    order: Schema.Attribute.Integer;
+    role: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface ReportMeetingDate extends Struct.ComponentSchema {
+  collectionName: 'components_report_meeting_dates';
+  info: {
+    displayName: 'Meeting date';
+    icon: 'calendar';
+  };
+  attributes: {
+    date: Schema.Attribute.Date & Schema.Attribute.Required;
+    month: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 12;
+          min: 1;
+        },
+        number
+      >;
+    note: Schema.Attribute.String;
+    year: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 2100;
+          min: 2000;
+        },
+        number
+      >;
+  };
+}
+
 export interface SharedMedia extends Struct.ComponentSchema {
   collectionName: 'components_shared_media';
   info: {
@@ -65,6 +106,8 @@ export interface SharedSlider extends Struct.ComponentSchema {
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
+      'report.commission-member': ReportCommissionMember;
+      'report.meeting-date': ReportMeetingDate;
       'shared.media': SharedMedia;
       'shared.quote': SharedQuote;
       'shared.rich-text': SharedRichText;

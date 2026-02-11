@@ -1,0 +1,50 @@
+{
+  "kind": "singleType",
+  "collectionName": "report_settings",
+  "info": {
+    "singularName": "report-setting",
+    "pluralName": "report-settings",
+    "displayName": "Report Setting",
+    "description": "Protocol/report template settings"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "protocolNumber": {
+      "type": "string"
+    },
+    "meetingTitle": {
+      "type": "string"
+    },
+    "departmentTitle": {
+      "type": "string"
+    },
+    "place": {
+      "type": "string"
+    },
+    "agendaText": {
+      "type": "text"
+    },
+    "footerText": {
+      "type": "text"
+    },
+    "commissionMembers": {
+      "type": "component",
+      "repeatable": true,
+      "component": "report.commission-member"
+    },
+    "secretaryName": {
+      "type": "string"
+    },
+    "coordinatorRole": {
+      "type": "string"
+    },
+    "meetingDateOverrides": {
+      "type": "component",
+      "repeatable": true,
+      "component": "report.meeting-date"
+    }
+  }
+}

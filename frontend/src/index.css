@@ -37,6 +37,8 @@
 body {
   margin: 0;
   font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--ink);
   background: #f4f1ea;
   min-height: 100vh;
@@ -49,8 +51,8 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: url("/frontend/public/background.png") center/cover no-repeat;
-  opacity: 0.4;
+  background: url("/background.png") center/cover no-repeat;
+  opacity: 0.55;
   z-index: 0;
   pointer-events: none;
 }
@@ -60,9 +62,9 @@ body::after {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at 10% -10%, rgba(14, 116, 144, 0.25) 0%, transparent 45%),
-    radial-gradient(circle at 90% 0%, rgba(244, 162, 97, 0.25) 0%, transparent 40%),
-    linear-gradient(180deg, rgba(244, 241, 234, 0.85) 0%, rgba(230, 241, 242, 0.9) 100%);
+    radial-gradient(circle at 10% -10%, rgba(14, 116, 144, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 90% 0%, rgba(244, 162, 97, 0.18) 0%, transparent 40%),
+    linear-gradient(180deg, rgba(244, 241, 234, 0.72) 0%, rgba(230, 241, 242, 0.78) 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -193,7 +195,7 @@ h1, h2, h3 {
 .app-header {
   background: rgba(255, 255, 255, 0.72);
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 10px 0;
+  padding: 8px 0;
   position: sticky;
   top: 0;
   z-index: 90;
@@ -205,7 +207,7 @@ h1, h2, h3 {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -241,14 +243,14 @@ h1, h2, h3 {
 .app-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 17px;
   letter-spacing: -0.02em;
   color: var(--text-main);
   line-height: 1.1;
 }
 
 .app-subtitle {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
@@ -262,7 +264,7 @@ h1, h2, h3 {
 .app-nav-tab {
   border: 1px solid transparent;
   background: transparent;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: 12px;
   font-size: 13px;
   cursor: pointer;
@@ -295,8 +297,8 @@ h1, h2, h3 {
 .app-main {
   max-width: 1200px;
   width: 100%;
-  margin: 0 auto 40px;
-  padding: 0 20px;
+  margin: 0 auto 32px;
+  padding: 0 18px;
 }
 
 /* Карточки */
@@ -305,7 +307,7 @@ h1, h2, h3 {
   background: var(--card-bg);
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
-  padding: 26px 26px 30px;
+  padding: 22px 22px 24px;
   border: 1px solid rgba(15, 23, 42, 0.06);
   animation: fadeUp 0.4s ease;
 }
@@ -316,9 +318,9 @@ h1, h2, h3 {
 }
 
 .card-subtitle {
-  margin: 0 0 18px;
+  margin: 0 0 14px;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .card-header-row {
@@ -344,7 +346,7 @@ h1, h2, h3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px 14px;
-  align-items: end;
+  align-items: start;
   padding: 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.78);
@@ -361,25 +363,93 @@ h1, h2, h3 {
   grid-column: 1 / -1;
 }
 
+.file-drop {
+  border: 1px dashed rgba(15, 23, 42, 0.2);
+  border-radius: 16px;
+  padding: 16px 14px 14px;
+  background: rgba(255, 255, 255, 0.75);
+  text-align: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.file-drop-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.file-drop-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: rgba(15, 118, 110, 0.16);
+  color: var(--accent-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.file-drop-text {
+  font-size: 13px;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.file-drop-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.upload-btn {
+  text-decoration: none;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.file-drop-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.file-drop-name {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
 /* Формы / инпуты */
 
-.form-group label,
+.form-group label:not(.upload-btn),
 .form-group input,
 .form-group select {
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--border);
-  padding: 8px 10px;
-  font-size: 14px;
+  padding: 7px 10px;
+  font-size: 15px;
   background: #fff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-group label {
+.form-group label:not(.upload-btn) {
   font-size: 12px;
   margin-bottom: 6px;
   font-weight: 600;
   color: var(--text-muted);
+}
+
+.form-group input,
+.form-group select,
+.modal-input,
+.modal-select {
+  font-variant-numeric: tabular-nums;
 }
 
 .form-group input {
@@ -387,7 +457,7 @@ h1, h2, h3 {
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   padding: 7px 10px;
-  font-size: 14px;
+  font-size: 15px;
   background: #fff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -467,7 +537,7 @@ h1, h2, h3 {
 .btn {
   border-radius: 12px;
   border: 1px solid transparent;
-  padding: 9px 14px;
+  padding: 8px 14px;
   font-size: 14px;
   cursor: pointer;
   font-weight: 600;
@@ -506,7 +576,7 @@ h1, h2, h3 {
 }
 
 .btn-small {
-  padding: 6px 10px;
+  padding: 5px 9px;
   font-size: 12px;
 }
 
@@ -525,7 +595,8 @@ h1, h2, h3 {
   margin-top: 18px;
   border-radius: 16px;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  overflow: hidden;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
   background: #fff;
   box-shadow: var(--shadow-sm);
 }
@@ -537,7 +608,9 @@ h1, h2, h3 {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
 }
 
 thead {
@@ -546,14 +619,14 @@ thead {
 
 th,
 td {
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   text-align: left;
 }
 
 th {
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -899,13 +972,84 @@ th {
   }
 }
 
+@media (max-width: 1024px) {
+  .app-header-container {
+    padding: 0 16px;
+  }
+  .app-main {
+    padding: 0 16px;
+  }
+  .card {
+    padding: 20px;
+  }
+  .card-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
+  .app-header-container {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .app-nav {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .app-nav-tab {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
   .app-main {
     padding: 0 16px 16px;
+  }
+  table {
+    min-width: 680px;
+  }
+  .login-card {
+    padding: 28px 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  .card {
+    padding: 18px;
+  }
+  .file-drop {
+    padding: 14px 12px 12px;
+  }
+  .file-drop-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+  .btn {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+  .btn-small {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  table {
+    min-width: 600px;
   }
 }

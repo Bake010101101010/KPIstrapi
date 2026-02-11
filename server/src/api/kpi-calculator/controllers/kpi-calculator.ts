@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import type { Context } from 'koa';
 import { parseTimesheet } from '../services/timesheet-parser';
 import * as kpiCalculator from '../services/kpi-calculator';
+import { buildBuhPdf, buildReportPdf, ReportSettings } from '../services/report-generator';
 import { getUserAccess } from '../../../utils/access';
 
 declare const strapi: any;
@@ -53,6 +54,213 @@ function parseHolidays(raw: any): (string | number)[] {
     .filter(Boolean);
 }
 
+function normalizeHolidayInput(
+  raw: string | number,
+  year: number,
+  month: number
+): string | null {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === 'number') {
+    if (raw >= 1 && raw <= 31) {
+      const dd = String(raw).padStart(2, '0');
+      const mm = String(month).padStart(2, '0');
+      return `${year}-${mm}-${dd}`;
+    }
+    return null;
+  }
+
+  const s = String(raw).trim();
+  if (!s) return null;
+
+  if (s.includes('-')) {
+    const parts = s.split('T')[0].split('-');
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const d = parseInt(parts[2], 10);
+      if (y === year && m === month && d >= 1 && d <= 31) {
+        const dd = String(d).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        return `${y}-${mm}-${dd}`;
+      }
+    }
+    return null;
+  }
+
+  if (/^\d+$/.test(s)) {
+    const d = parseInt(s, 10);
+    if (d >= 1 && d <= 31) {
+      const dd = String(d).padStart(2, '0');
+      const mm = String(month).padStart(2, '0');
+      return `${year}-${mm}-${dd}`;
+    }
+  }
+
+  return null;
+}
+
+async function loadHolidayDates(ctx: Context, year: number, month: number): Promise<string[]> {
+  const strapiHolidays = await strapi.entityService.findMany('api::holiday.holiday', {
+    filters: {
+      year: { $eq: year },
+      month: { $eq: month },
+    },
+    fields: ['date', 'year', 'month'],
+    pagination: { pageSize: 1000 },
+  });
+
+  const strapiHolidayDates: string[] = [];
+  (strapiHolidays || []).forEach((h: any) => {
+    const dateValue = h.date;
+    if (dateValue) {
+      strapiHolidayDates.push(String(dateValue));
+    }
+  });
+
+  const formHolidays = parseHolidays(getRequestField(ctx, 'holidays'));
+  const normalized = [
+    ...strapiHolidayDates
+      .map((x) => normalizeHolidayInput(x, year, month))
+      .filter(Boolean),
+    ...formHolidays
+      .map((x) => normalizeHolidayInput(x, year, month))
+      .filter(Boolean),
+  ];
+
+  return Array.from(new Set(normalized as string[]));
+}
+
+function getLastWorkingDate(year: number, month: number, holidays: string[]): string {
+  const holidaySet = new Set(holidays || []);
+  const lastDay = new Date(year, month, 0).getDate();
+
+  for (let d = lastDay; d >= 1; d--) {
+    const date = new Date(year, month - 1, d);
+    const dayOfWeek = date.getDay();
+    const dd = String(d).padStart(2, '0');
+    const mm = String(month).padStart(2, '0');
+    const key = `${year}-${mm}-${dd}`;
+
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+    if (holidaySet.has(key)) continue;
+    return key;
+  }
+
+  const dd = String(lastDay).padStart(2, '0');
+  const mm = String(month).padStart(2, '0');
+  return `${year}-${mm}-${dd}`;
+}
+
+async function loadReportSettings(): Promise<ReportSettings | null> {
+  try {
+    const raw: any = await strapi.entityService.findMany('api::report-setting.report-setting', {
+      populate: {
+        commissionMembers: true,
+        meetingDateOverrides: true,
+      },
+    });
+
+    const entity = Array.isArray(raw) ? raw[0] : raw;
+    if (!entity) return null;
+
+    const data = entity?.attributes ? { ...entity.attributes } : { ...entity };
+    return data as ReportSettings;
+  } catch {
+    return null;
+  }
+}
+
+const DEFAULT_REPORT_SETTINGS: ReportSettings = {
+  protocolNumber: '1',
+  meetingTitle: 'Заседания комиссии по оплате и мотивации труда персонала',
+  departmentTitle: 'Отдел централизованный медицинский клининг-1',
+  place: 'г.Астана, пр.Абылай – хана 42',
+  agendaText:
+    'Рассмотрение итогов работы за {{month}} месяц {{year}} года. Оценка достижения ключевых показателей работы эффективности выполнения внутренних стандартов, санитарно-эпидемиологического режима и трудовой дисциплины, степень достижения КПР каждым сотрудником {{department}}.\n' +
+    'Результаты фактического исполнения целевых показателей КПР за {{month}} месяц {{year}} года в соответствии с утверждённым Положением об оплате труда. Младший медицинский персонал {{department}}.',
+  footerText:
+    'Передать отделу бухгалтерии результаты рассмотрения стимулирующих и мотивирующих компонентов для своевременного начисления.',
+  commissionMembers: [
+    { role: 'Председатель', name: 'Нурсейтова Т.Б.' },
+    { role: 'Координатор ОЦМК', name: 'Кикимбаева Г.Т.' },
+    { role: 'Руководитель по сестринскому делу', name: 'Мусабаева А.М' },
+    { role: 'Руководитель отдела управления', name: 'Кенжебаева Ш.Т' },
+    { role: 'Главный экономист', name: 'Мендыбаева Э.М' },
+    { role: 'Главный бухгалтер', name: 'Тасеменова Д.К' },
+  ],
+  secretaryName: 'Актанова К.Е',
+  coordinatorRole: 'Координатор ОЦМК',
+};
+
+function applyReportDefaults(settings?: ReportSettings | null): ReportSettings {
+  return {
+    ...DEFAULT_REPORT_SETTINGS,
+    ...(settings || {}),
+    commissionMembers:
+      settings?.commissionMembers && settings.commissionMembers.length > 0
+        ? settings.commissionMembers
+        : DEFAULT_REPORT_SETTINGS.commissionMembers,
+  };
+}
+
+const MONTHS_NOMINATIVE = [
+  'январь',
+  'февраль',
+  'март',
+  'апрель',
+  'май',
+  'июнь',
+  'июль',
+  'август',
+  'сентябрь',
+  'октябрь',
+  'ноябрь',
+  'декабрь',
+];
+
+const MONTHS_GENITIVE = [
+  'января',
+  'февраля',
+  'марта',
+  'апреля',
+  'мая',
+  'июня',
+  'июля',
+  'августа',
+  'сентября',
+  'октября',
+  'ноября',
+  'декабря',
+];
+
+function formatDateRu(dateStr: string): string {
+  const [y, m, d] = String(dateStr).split('-').map((x) => parseInt(x, 10));
+  if (!y || !m || !d) return dateStr;
+  const monthName = MONTHS_GENITIVE[m - 1] || '';
+  return `${d} ${monthName} ${y}`;
+}
+
+function applyTemplate(text: string, vars: Record<string, string>): string {
+  return Object.keys(vars).reduce((acc, key) => {
+    return acc.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), vars[key]);
+  }, text);
+}
+
+function resolveMeetingDateOverride(
+  settings: ReportSettings | null,
+  year: number,
+  month: number
+): string | null {
+  const overrides = settings?.meetingDateOverrides || [];
+  for (const item of overrides as any[]) {
+    const y = item?.year ? parseInt(String(item.year), 10) : 0;
+    const m = item?.month ? parseInt(String(item.month), 10) : 0;
+    if (y === year && m === month && item?.date) {
+      return String(item.date).split('T')[0];
+    }
+  }
+  return null;
+}
 function getBodyField(body: any, key: string): any {
   if (!body) return undefined;
 
@@ -414,41 +622,253 @@ export default {
   async downloadBuh(ctx: Context) {
     try {
       const { results } = await calcCore(ctx);
+      const year = parseInt(getRequestField(ctx, 'year') || '0', 10);
+      const month = parseInt(getRequestField(ctx, 'month') || '0', 10);
+      if (!year || !month || month < 1 || month > 12) {
+        throw new Error('Некорректные значения года или месяца');
+      }
+
+      const requestedDepartment = String(getRequestField(ctx, 'department') || '').trim();
+      const holidays = await loadHolidayDates(ctx, year, month);
+      const settings = applyReportDefaults(await loadReportSettings());
+      const overrideDate = resolveMeetingDateOverride(settings, year, month);
+      const meetingDate = overrideDate || getLastWorkingDate(year, month, holidays);
+
+      const monthNom = MONTHS_NOMINATIVE[month - 1] || '';
+      const monthGen = MONTHS_GENITIVE[month - 1] || '';
+      const lastDay = new Date(year, month, 0).getDate();
+      const departmentTitle = requestedDepartment || settings.departmentTitle || '';
+
+      const templateVars = {
+        month: monthNom,
+        monthGen,
+        year: String(year),
+        department: departmentTitle,
+      };
+
+      const agendaText = applyTemplate(settings.agendaText || '', templateVars);
+      const footerText = applyTemplate(settings.footerText || '', templateVars);
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Buh');
 
-      worksheet.columns = [
-        { header: 'ФИО', key: 'fio', width: 30 },
-        { header: 'KPI_план', key: 'kpiPlan', width: 12 },
-        { header: 'KPI_%', key: 'kpiPercent', width: 12 },
-        { header: 'KPI_итог', key: 'kpiFinal', width: 12 },
-        { header: 'КПР1_план', key: 'kpr1Plan', width: 12 },
-        { header: 'КПР1_%', key: 'kpr1Percent', width: 12 },
-        { header: 'КПР1_итог', key: 'kpr1Final', width: 12 },
-        { header: 'КПР2_план', key: 'kpr2Plan', width: 12 },
-        { header: 'КПР2_%', key: 'kpr2Percent', width: 12 },
-        { header: 'КПР2_итог', key: 'kpr2Final', width: 12 },
-      ];
+      const fontName = 'Times New Roman';
+      const totalColumns = 5;
+      const columnWidths = [5, 45, 12, 8, 12];
+      worksheet.columns = columnWidths.map((width) => ({ width }));
+      worksheet.properties.defaultRowHeight = 18;
 
-      results.forEach((r: any) => {
-        const half = (r.kpiSum || 0) / 2.0;
-        const kpr1Final = Math.round(((half * (r.workPercent || 0)) / 100) * 100) / 100;
-        const kpr2Final = Math.round(((half * (r.workPercent || 0)) / 100) * 100) / 100;
+      const mergeAcross = (row: number, start = 1, end = totalColumns) => {
+        worksheet.mergeCells(row, start, row, end);
+      };
 
-        worksheet.addRow({
-          fio: r.fio,
-          kpiPlan: r.kpiSum,
-          kpiPercent: r.workPercent,
-          kpiFinal: r.kpiFinal,
-          kpr1Plan: half,
-          kpr1Percent: r.workPercent,
-          kpr1Final,
-          kpr2Plan: half,
-          kpr2Percent: r.workPercent,
-          kpr2Final,
-        });
+      const setMergedText = (
+        row: number,
+        start: number,
+        end: number,
+        text: string,
+        opts?: { bold?: boolean; size?: number; align?: 'left' | 'center' }
+      ) => {
+        mergeAcross(row, start, end);
+        const cell = worksheet.getCell(row, start);
+        cell.value = text;
+        cell.font = {
+          name: fontName,
+          size: opts?.size || 11,
+          bold: Boolean(opts?.bold),
+        };
+        cell.alignment = {
+          horizontal: opts?.align || 'left',
+          vertical: 'middle',
+          wrapText: true,
+        };
+        return cell;
+      };
+
+      const setCell = (
+        row: number,
+        col: number,
+        value: string | number,
+        opts?: { bold?: boolean; size?: number; align?: 'left' | 'center' }
+      ) => {
+        const cell = worksheet.getCell(row, col);
+        cell.value = value;
+        cell.font = {
+          name: fontName,
+          size: opts?.size || 11,
+          bold: Boolean(opts?.bold),
+        };
+        cell.alignment = {
+          horizontal: opts?.align || 'left',
+          vertical: 'middle',
+          wrapText: true,
+        };
+        return cell;
+      };
+
+      let row = 1;
+      setMergedText(
+        row,
+        1,
+        totalColumns,
+        `Протокол № ${settings.protocolNumber || '1'}`,
+        { bold: true, size: 12, align: 'center' }
+      );
+      row += 2;
+      setMergedText(row, 1, totalColumns, settings.meetingTitle || '', {
+        bold: true,
+        size: 12,
       });
+      row += 1;
+      if (departmentTitle) {
+        setMergedText(row, 1, totalColumns, departmentTitle, { bold: true, size: 12 });
+        row += 1;
+      }
+      row += 1;
+      setMergedText(
+        row,
+        1,
+        totalColumns,
+        `Дата заседания: ${formatDateRu(meetingDate)} г.`,
+        {}
+      );
+      row += 1;
+      setMergedText(row, 1, totalColumns, `Место проведения: ${settings.place || ''}`, {});
+      row += 2;
+      setMergedText(
+        row,
+        1,
+        totalColumns,
+        `Оцениваемый период: с 1 ${monthGen} ${year} года - по ${lastDay} ${monthGen} ${year} г.`,
+        {}
+      );
+      row += 2;
+
+      setMergedText(row, 1, totalColumns, 'Члены комиссии:', { bold: true });
+      row += 1;
+
+      const members = (settings.commissionMembers || [])
+        .slice()
+        .sort((a: any, b: any) => {
+          const ao = typeof a?.order === 'number' ? a.order : 9999;
+          const bo = typeof b?.order === 'number' ? b.order : 9999;
+          return ao - bo;
+        });
+
+      members.forEach((member: any) => {
+        if (!member?.role || !member?.name) return;
+        mergeAcross(row, 1, 3);
+        mergeAcross(row, 4, totalColumns);
+        setCell(row, 1, String(member.role));
+        setCell(row, 4, String(member.name));
+        row += 1;
+      });
+
+      if (settings.secretaryName) {
+        mergeAcross(row, 1, 3);
+        mergeAcross(row, 4, totalColumns);
+        setCell(row, 1, 'Секретарь комиссии:', { bold: true });
+        setCell(row, 4, String(settings.secretaryName));
+        row += 2;
+      } else {
+        row += 1;
+      }
+
+      setMergedText(row, 1, totalColumns, 'ПОВЕСТКА ДНЯ:', { bold: true });
+      row += 1;
+      setMergedText(row, 1, totalColumns, agendaText || '', {});
+      const agendaLines = String(agendaText || '').split('\n').length;
+      worksheet.getRow(row).height = Math.max(18, agendaLines * 18);
+      row += 2;
+
+      const tableHeaderRow = row;
+      const headers = ['№ п/п', 'ФИО', 'КПР план', 'КПР %', 'КПР итог'];
+
+      headers.forEach((text, idx) => {
+        const cell = setCell(tableHeaderRow, idx + 1, text, {
+          bold: true,
+          align: 'center',
+        });
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      });
+      worksheet.getRow(tableHeaderRow).height = 22;
+      row += 1;
+
+      let totalKpiFinal = 0;
+      results.forEach((r: any, idx: number) => {
+        const kpiSum = Number(r.kpiSum || 0);
+        const workPercent = Number(r.workPercent || 0);
+        const kpiFinal = Number(r.kpiFinal || 0);
+        totalKpiFinal += kpiFinal;
+
+        setCell(row, 1, idx + 1, { align: 'center' });
+        setCell(row, 2, r.fio || '');
+        setCell(row, 3, kpiSum);
+        setCell(row, 4, workPercent, { align: 'center' });
+        setCell(row, 5, kpiFinal);
+
+        row += 1;
+      });
+
+      const totalRow = row;
+      setCell(totalRow, 2, 'Итого', { bold: true });
+      setCell(totalRow, 5, totalKpiFinal, { bold: true });
+      row += 2;
+
+      const tableEndRow = totalRow;
+      for (let r = tableHeaderRow; r <= tableEndRow; r += 1) {
+        for (let c = 1; c <= totalColumns; c += 1) {
+          const cell = worksheet.getCell(r, c);
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '0';
+          }
+        }
+      }
+
+      if (footerText) {
+        const footerLines = String(footerText).split('\n');
+        footerLines.forEach((line) => {
+          setMergedText(row, 1, totalColumns, line, {});
+          row += 1;
+        });
+      }
+
+      setMergedText(row, 1, totalColumns, 'Члены заседания проголосовали', {});
+      row += 1;
+      setMergedText(row, 1, totalColumns, 'ЗА – 5 человека', {});
+      row += 1;
+      setMergedText(row, 1, totalColumns, 'ПРОТИВ – нет', {});
+      row += 1;
+      setMergedText(row, 1, totalColumns, 'ВОЗДЕРЖАВШИХСЯ – нет', {});
+      row += 1;
+
+      setMergedText(row, 1, totalColumns, 'Члены комиссии:', {});
+      row += 1;
+
+      const coordinatorRole = settings.coordinatorRole || 'Координатор';
+      const coordinator = members.find(
+        (m: any) => String(m?.role || '').toLowerCase() === coordinatorRole.toLowerCase()
+      );
+      if (coordinator) {
+        mergeAcross(row, 1, 3);
+        mergeAcross(row, 4, totalColumns);
+        setCell(row, 1, coordinatorRole);
+        setCell(row, 4, String(coordinator.name));
+        row += 1;
+      }
+
+      if (settings.secretaryName) {
+        mergeAcross(row, 1, 3);
+        mergeAcross(row, 4, totalColumns);
+        setCell(row, 1, 'Секретарь комиссии');
+        setCell(row, 4, String(settings.secretaryName));
+      }
 
       const buffer = await workbook.xlsx.writeBuffer();
 
@@ -458,7 +878,7 @@ export default {
       );
       ctx.set(
         'Content-Disposition',
-        `attachment; filename="KPI_for_Buh_${Date.now()}.xlsx"`
+        `attachment; filename="KPI_for_Buh_${year}-${String(month).padStart(2, '0')}_${Date.now()}.xlsx"`
       );
       ctx.body = buffer;
     } catch (error: any) {
@@ -466,6 +886,80 @@ export default {
       ctx.body = {
         error: error.message || 'Ошибка формирования файла для бухгалтерии',
       };
+    }
+  },
+
+  async downloadBuhPdf(ctx: Context) {
+    try {
+      const { results } = await calcCore(ctx);
+      const year = parseInt(getRequestField(ctx, 'year') || '0', 10);
+      const month = parseInt(getRequestField(ctx, 'month') || '0', 10);
+      if (!year || !month || month < 1 || month > 12) {
+        throw new Error('Некорректные значения года или месяца');
+      }
+
+      const requestedDepartment = String(getRequestField(ctx, 'department') || '').trim();
+      const holidays = await loadHolidayDates(ctx, year, month);
+      const settings = applyReportDefaults(await loadReportSettings());
+      const overrideDate = resolveMeetingDateOverride(settings, year, month);
+      const meetingDate = overrideDate || getLastWorkingDate(year, month, holidays);
+
+      const buffer = await buildBuhPdf({
+        results: results || [],
+        year,
+        month,
+        department: requestedDepartment,
+        meetingDate,
+        settings,
+      });
+
+      ctx.set('Content-Type', 'application/pdf');
+      ctx.set(
+        'Content-Disposition',
+        `attachment; filename="KPI_for_Buh_${year}-${String(month).padStart(2, '0')}_${Date.now()}.pdf"`
+      );
+      ctx.body = buffer;
+    } catch (error: any) {
+      ctx.status = error?.status || 400;
+      ctx.body = {
+        error: error.message || 'Ошибка формирования PDF для бухгалтерии',
+      };
+    }
+  },
+
+  async downloadReport(ctx: Context) {
+    try {
+      const { results } = await calcCore(ctx);
+      const year = parseInt(getRequestField(ctx, 'year') || '0', 10);
+      const month = parseInt(getRequestField(ctx, 'month') || '0', 10);
+      if (!year || !month || month < 1 || month > 12) {
+        throw new Error('Некорректные значения года или месяца');
+      }
+
+      const requestedDepartment = String(getRequestField(ctx, 'department') || '').trim();
+      const holidays = await loadHolidayDates(ctx, year, month);
+      const settings = (await loadReportSettings()) || {};
+      const overrideDate = resolveMeetingDateOverride(settings, year, month);
+      const meetingDate = overrideDate || getLastWorkingDate(year, month, holidays);
+
+      const buffer = await buildReportPdf({
+        results: results || [],
+        year,
+        month,
+        department: requestedDepartment,
+        meetingDate,
+        settings,
+      });
+
+      ctx.set('Content-Type', 'application/pdf');
+      ctx.set(
+        'Content-Disposition',
+        `attachment; filename="Protocol_${year}_${String(month).padStart(2, '0')}.pdf"`
+      );
+      ctx.body = buffer;
+    } catch (error: any) {
+      ctx.status = error?.status || 400;
+      ctx.body = { error: error.message || 'Ошибка формирования отчёта' };
     }
   },
 };

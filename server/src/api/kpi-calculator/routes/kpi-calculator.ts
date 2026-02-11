@@ -32,6 +32,22 @@
         auth: { scope: [] },
       },
     },
+    {
+      method: 'POST',
+      path: '/kpi-calculator/download-buh-pdf',
+      handler: 'kpi-calculator.downloadBuhPdf',
+      config: {
+        auth: { scope: [] },
+      },
+    },
+    {
+      method: 'POST',
+      path: '/kpi-calculator/download-report',
+      handler: 'kpi-calculator.downloadReport',
+      config: {
+        auth: { scope: [] },
+      },
+    },
   ],
 };
 

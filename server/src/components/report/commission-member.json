@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_report_commission_members",
+  "info": {
+    "displayName": "Commission member",
+    "icon": "user"
+  },
+  "options": {},
+  "attributes": {
+    "role": {
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "order": {
+      "type": "integer"
+    }
+  }
+}

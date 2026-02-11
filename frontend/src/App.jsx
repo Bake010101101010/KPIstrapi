@@ -4,6 +4,7 @@ import {
   apiMe,
   apiCalcKpiJson,
   apiCalcKpiExcel,
+  apiCalcKpiBuhPdf,
   apiKpiList,
   apiDeletedLog,
   apiEditedLog,
@@ -13,11 +14,117 @@ import {
   apiDeleteEmployee,
   apiRestoreEmployee,
   apiHolidays,
-  apiAddHoliday,
-  apiDeleteHoliday,
   apiAccessUsers,
   apiUpdateUserAccess,
 } from "./api";
+
+const STORAGE_CACHE_KEY = "kpi_cache_v1";
+const STORAGE_USER_KEY = "kpi_user_cache_v1";
+
+const safeParseJSON = (value) => {
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    return null;
+  }
+};
+
+const MONTH_WORKDAYS = {
+  1: { day: 20, shift: 24 },
+  2: { day: 21, shift: 24 },
+  3: { day: 19, shift: 22 },
+  4: { day: 23, shift: 26 },
+  5: { day: 18, shift: 22 },
+  6: { day: 23, shift: 26 },
+  7: { day: 23, shift: 26 },
+  8: { day: 21, shift: 25 },
+  9: { day: 23, shift: 26 },
+  10: { day: 22, shift: 26 },
+  11: { day: 22, shift: 25 },
+  12: { day: 23, shift: 26 },
+};
+
+const MONTH_SELECT_NAMES = [
+  "январь",
+  "февраль",
+  "март",
+  "апрель",
+  "май",
+  "июнь",
+  "июль",
+  "август",
+  "сентябрь",
+  "октябрь",
+  "ноябрь",
+  "декабрь",
+];
+
+const STATIC_HOLIDAYS = {
+  1: [
+    { day: 1, label: "Новый год" },
+    { day: 2, label: "Новый год" },
+    { day: 7, label: "Православное Рождество" },
+  ],
+  3: [
+    { day: 8, label: "Международный женский день" },
+    { day: 21, label: "Наурыз мейрамы" },
+    { day: 22, label: "Наурыз мейрамы" },
+    { day: 23, label: "Наурыз мейрамы" },
+  ],
+  5: [
+    { day: 1, label: "Праздник единства народа Казахстана" },
+    { day: 7, label: "День защитника Отечества" },
+    { day: 9, label: "День Победы" },
+    { day: 27, label: "Курбан айт" },
+  ],
+  7: [{ day: 6, label: "День Столицы" }],
+  8: [{ day: 30, label: "День Конституции РК" }],
+  10: [{ day: 25, label: "День Республики" }],
+  12: [{ day: 16, label: "День Независимости" }],
+};
+
+const buildHolidayDate = (year, month, day) => {
+  const mm = String(month).padStart(2, "0");
+  const dd = String(day).padStart(2, "0");
+  return `${year}-${mm}-${dd}`;
+};
+
+const getStaticHolidays = (year, month) => {
+  const items = STATIC_HOLIDAYS[month] || [];
+  return items.map((item) => ({
+    date: buildHolidayDate(year, month, item.day),
+    description: item.label || "",
+    isStatic: true,
+  }));
+};
+
+const mergeHolidays = (apiItems, staticItems) => {
+  const byDate = new Map();
+
+  (staticItems || []).forEach((item) => {
+    if (!item?.date) return;
+    byDate.set(item.date, { ...item });
+  });
+
+  (apiItems || []).forEach((item) => {
+    if (!item?.date) return;
+    const existing = byDate.get(item.date);
+    if (existing) {
+      byDate.set(item.date, {
+        ...existing,
+        ...item,
+        description: item.description || existing.description,
+        isStatic: existing.isStatic || item.isStatic,
+      });
+    } else {
+      byDate.set(item.date, { ...item });
+    }
+  });
+
+  return Array.from(byDate.values()).sort((a, b) =>
+    String(a.date || "").localeCompare(String(b.date || ""))
+  );
+};
 
 // ======================= Toast (по центру) =======================
 
@@ -178,8 +285,8 @@ function EmployeeFormModal({ initial, mode, onCancel, onSave }) {
               onChange={(e) => setScheduleType(e.target.value)}
               required
             >
-              <option value="day">Дневной</option>
-              <option value="shift">Суточный</option>
+              <option value="day">Дневные</option>
+              <option value="shift">Суточные</option>
             </select>
           </label>
 
@@ -296,6 +403,7 @@ function AccessModal({ user, departments, onCancel, onSave }) {
 export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState(null);
+  const [cacheLoaded, setCacheLoaded] = useState(false);
 
   const [loginForm, setLoginForm] = useState({
     login: "",
@@ -307,11 +415,11 @@ export default function App() {
 
   // --- состояние формы расчёта KPI по табелю ---
   const [timesheetFile, setTimesheetFile] = useState(null);
+  const [isDragActive, setIsDragActive] = useState(false);
   const [nchDay, setNchDay] = useState("21");
   const [ndShift, setNdShift] = useState("25");
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [month, setMonth] = useState(String(new Date().getMonth() + 1));
-  const [holidayDate, setHolidayDate] = useState("");
   const [holidays, setHolidays] = useState([]); // Массив объектов {id, date}
   const [calcResults, setCalcResults] = useState([]);
   const [calcErrors, setCalcErrors] = useState([]);
@@ -356,6 +464,13 @@ export default function App() {
     return `${oldStr || "—"} → ${newStr || "—"}`;
   };
 
+  const formatScheduleType = (value) => {
+    const key = String(value || "").trim().toLowerCase();
+    if (key === "day") return "Дневные";
+    if (key === "shift") return "Суточные";
+    return value || "";
+  };
+
   const normalizeCalcError = (item) => {
     if (!item) {
       return { fio: "", type: "", message: "Неизвестная ошибка" };
@@ -391,6 +506,25 @@ export default function App() {
       .toUpperCase()
       .replace(/[\s\-–—_]+/g, "");
 
+  const handleTimesheetFile = (file) => {
+    if (!file) return;
+    const name = String(file.name || "").toLowerCase();
+    if (!name.endsWith(".xls") && !name.endsWith(".xlsx")) {
+      showToast("Допустимы только файлы XLSX/XLS", "error");
+      return;
+    }
+    setTimesheetFile(file);
+  };
+
+  useEffect(() => {
+    const m = parseInt(month, 10);
+    if (!m || m < 1 || m > 12) return;
+    const defaults = MONTH_WORKDAYS[m];
+    if (!defaults) return;
+    setNchDay(String(defaults.day));
+    setNdShift(String(defaults.shift));
+  }, [month]);
+
   const filterResultsByDept = (items, dept) => {
     if (!dept) return items || [];
     const target = normalizeDept(dept);
@@ -404,13 +538,15 @@ export default function App() {
     const m = parseInt(month, 10);
     if (!y || !m) return;
 
+    const staticList = getStaticHolidays(y, m);
+
     apiHolidays(y, m)
       .then((holidayList) => {
-        setHolidays(holidayList || []);
+        setHolidays(mergeHolidays(holidayList || [], staticList));
       })
       .catch((e) => {
         console.error("Ошибка загрузки праздников из Strapi", e);
-        setHolidays([]);
+        setHolidays(mergeHolidays([], staticList));
       });
   }, [year, month]);
 
@@ -419,20 +555,28 @@ export default function App() {
   useEffect(() => {
     // пробуем восстановить сессию
     const token = localStorage.getItem("kpi_token");
+    const cachedUser = safeParseJSON(localStorage.getItem(STORAGE_USER_KEY));
     if (!token) {
+      if (cachedUser) {
+        setUser(cachedUser);
+      }
       setAuthChecked(true);
       return;
     }
     apiMe()
       .then((data) => {
-        setUser({
+        const cachedUser = {
           login: data.login,
           role: data.role,
           allowedDepartments: data.allowedDepartments || [],
-        });
+        };
+        setUser(cachedUser);
+        localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(cachedUser));
       })
       .catch(() => {
-        localStorage.removeItem("kpi_token");
+        if (cachedUser) {
+          setUser(cachedUser);
+        }
       })
       .finally(() => setAuthChecked(true));
   }, []);
@@ -441,16 +585,73 @@ export default function App() {
     setToast({ text, type });
   };
 
+  useEffect(() => {
+    const cached = safeParseJSON(localStorage.getItem(STORAGE_CACHE_KEY));
+    if (cached && typeof cached === "object") {
+      if (cached.activeTab) setActiveTab(String(cached.activeTab));
+      if (cached.month) setMonth(String(cached.month));
+      if (cached.year) setYear(String(cached.year));
+      if (cached.nchDay) setNchDay(String(cached.nchDay));
+      if (cached.ndShift) setNdShift(String(cached.ndShift));
+      if (cached.calcDepartment) setCalcDepartment(String(cached.calcDepartment));
+      if (Array.isArray(cached.calcResults)) setCalcResults(cached.calcResults);
+      if (Array.isArray(cached.calcErrors)) setCalcErrors(cached.calcErrors);
+      if (cached.kpiTab) setKpiTab(String(cached.kpiTab));
+      if (cached.filterSchedule) setFilterSchedule(String(cached.filterSchedule));
+      if (cached.filterDept) setFilterDept(String(cached.filterDept));
+      if (cached.searchFio) setSearchFio(String(cached.searchFio));
+      if (cached.sortBy) setSortBy(String(cached.sortBy));
+    }
+    setCacheLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!cacheLoaded) return;
+    const payload = {
+      activeTab,
+      month,
+      year,
+      nchDay,
+      ndShift,
+      calcDepartment,
+      calcResults,
+      calcErrors,
+      kpiTab,
+      filterSchedule,
+      filterDept,
+      searchFio,
+      sortBy,
+    };
+    localStorage.setItem(STORAGE_CACHE_KEY, JSON.stringify(payload));
+  }, [
+    cacheLoaded,
+    activeTab,
+    month,
+    year,
+    nchDay,
+    ndShift,
+    calcDepartment,
+    calcResults,
+    calcErrors,
+    kpiTab,
+    filterSchedule,
+    filterDept,
+    searchFio,
+    sortBy,
+  ]);
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
       const data = await apiLogin(loginForm.login, loginForm.password);
       localStorage.setItem("kpi_token", data.token);
-      setUser({
+      const cachedUser = {
         login: data.login,
         role: data.role,
         allowedDepartments: data.allowedDepartments || [],
-      });
+      };
+      setUser(cachedUser);
+      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(cachedUser));
       showToast("Успешный вход в систему");
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
@@ -460,6 +661,8 @@ export default function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("kpi_token");
+    localStorage.removeItem(STORAGE_USER_KEY);
+    localStorage.removeItem(STORAGE_CACHE_KEY);
     setUser(null);
     setKpiItems([]);
     setDeletedItems([]);
@@ -608,10 +811,16 @@ export default function App() {
       const holidayDates = holidays.map((h) => h.date || h).filter(Boolean);
       fd.append("holidays", JSON.stringify(holidayDates));
 
-      const blob = await apiCalcKpiExcel(fd, mode, {
-        department: calcDepartment || "",
-        debug: true,
-      });
+      const blob =
+        mode === "pdf"
+          ? await apiCalcKpiBuhPdf(fd, {
+              department: calcDepartment || "",
+              debug: true,
+            })
+          : await apiCalcKpiExcel(fd, mode, {
+              department: calcDepartment || "",
+              debug: true,
+            });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -620,6 +829,8 @@ export default function App() {
         a.download = `KPI_for_1C_${ts}.xlsx`;
       } else if (mode === "buh") {
         a.download = `KPI_for_Buh_${ts}.xlsx`;
+      } else if (mode === "pdf") {
+        a.download = `KPI_for_Buh_${ts}.pdf`;
       } else {
         a.download = `KPIfinal_${ts}.xlsx`;
       }
@@ -627,7 +838,7 @@ export default function App() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      showToast("Файл Excel сформирован и скачан");
+      showToast(mode === "pdf" ? "Файл PDF сформирован и скачан" : "Файл Excel сформирован и скачан");
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       showToast(errorMsg || "Ошибка формирования файла", "error");
@@ -924,11 +1135,52 @@ export default function App() {
             <div className="form-grid">
               <div className="form-group file-field">
                 <label>Табель (Excel):</label>
-                <input
-                  type="file"
-                  accept=".xls,.xlsx"
-                  onChange={(e) => setTimesheetFile(e.target.files[0] || null)}
-                />
+                <div
+                  className={`file-drop${isDragActive ? " file-drop-active" : ""}`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragActive(true);
+                  }}
+                  onDragLeave={() => setIsDragActive(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragActive(false);
+                    const file = e.dataTransfer?.files?.[0];
+                    if (file) {
+                      handleTimesheetFile(file);
+                    }
+                  }}
+                >
+                  <div className="file-drop-icon">↑</div>
+                  <div className="file-drop-text">
+                    Перетащите сюда таблицу в Excel или выберите файл
+                  </div>
+                  <div className="file-drop-actions">
+                    <label
+                      className="btn btn-primary upload-btn"
+                      htmlFor="timesheet-input"
+                    >
+                      Выбрать файл
+                    </label>
+                    <input
+                      id="timesheet-input"
+                      className="file-input-hidden"
+                      type="file"
+                      accept=".xls,.xlsx"
+                      onChange={(e) =>
+                        handleTimesheetFile(e.target.files[0] || null)
+                      }
+                    />
+                  </div>
+                  <div className="file-drop-hint">
+                    Примеры допустимых форматов файлов: XLSX, XLS
+                  </div>
+                  {timesheetFile && (
+                    <div className="file-drop-name">
+                      Выбран файл: {timesheetFile.name}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -936,7 +1188,13 @@ export default function App() {
                 <input
                   type="number"
                   value={nchDay}
-                  onChange={(e) => setNchDay(e.target.value)}
+                  onChange={(e) => {
+                    if (isAdmin) {
+                      setNchDay(e.target.value);
+                    }
+                  }}
+                  disabled={!isAdmin}
+                  readOnly={!isAdmin}
                 />
               </div>
 
@@ -945,7 +1203,13 @@ export default function App() {
                 <input
                   type="number"
                   value={ndShift}
-                  onChange={(e) => setNdShift(e.target.value)}
+                  onChange={(e) => {
+                    if (isAdmin) {
+                      setNdShift(e.target.value);
+                    }
+                  }}
+                  disabled={!isAdmin}
+                  readOnly={!isAdmin}
                 />
               </div>
 
@@ -960,13 +1224,19 @@ export default function App() {
 
               <div className="form-group month-field">
                 <label>Месяц (1–12):</label>
-                <input
-                  type="number"
+                <select
                   value={month}
-                  min={1}
-                  max={12}
                   onChange={(e) => setMonth(e.target.value)}
-                />
+                >
+                  {MONTH_SELECT_NAMES.map((name, idx) => {
+                    const value = String(idx + 1);
+                    return (
+                      <option key={value} value={value}>
+                        {value} - {name}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
 
               <div className="form-group">
@@ -985,46 +1255,7 @@ export default function App() {
               </div>
 
               <div className="form-group holiday-field">
-                <label>Праздничные дни (добавьте даты):</label>
-                <div className="holiday-row">
-                  <input
-                    type="date"
-                    value={holidayDate}
-                    onChange={(e) => setHolidayDate(e.target.value)}
-                  />
-                  <button
-                    className="btn btn-outline"
-                    type="button"
-                    onClick={async () => {
-                      if (!holidayDate) return;
-                      const monthStr = String(month).padStart(2, "0");
-                      if (!holidayDate.startsWith(year + "-" + monthStr)) {
-                        showToast("Выберите дату в выбранном месяце", "error");
-                        return;
-                      }
-                      // Проверяем, не добавлен ли уже
-                      if (holidays.some((h) => h.date === holidayDate)) {
-                        showToast("Этот праздник уже добавлен", "error");
-                        return;
-                      }
-                      
-                      try {
-                        // Сохраняем в Strapi (с проверкой на дубликаты на сервере)
-                        await apiAddHoliday(holidayDate, year, month);
-                        setHolidayDate("");
-                        showToast("Праздник добавлен");
-                        // Перезагружаем из Strapi, чтобы получить актуальный список с ID
-                        const updated = await apiHolidays(year, month);
-                        setHolidays(updated || []);
-                      } catch (err) {
-                        const errorMsg = err instanceof Error ? err.message : String(err);
-                        showToast(errorMsg || "Ошибка добавления праздника", "error");
-                      }
-                    }}
-                  >
-                    Добавить
-                  </button>
-                </div>
+                <label>Праздничные дни:</label>
                 {holidays.length > 0 ? (
                   <div className="holiday-chips">
                     <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>
@@ -1040,33 +1271,16 @@ export default function App() {
                       const displayDate = `${day} ${monthName}`;
                       
                       return (
-                        <span key={h.id || h.date} className="chip" title={`${h.date} (праздничный день)`}>
+                        <span
+                          key={h.id || h.date}
+                          className="chip"
+                          title={
+                            h.description
+                              ? `${h.date} — ${h.description}`
+                              : `${h.date} (праздничный день)`
+                          }
+                        >
                           {displayDate}
-                          <button
-                            type="button"
-                            className="chip-x"
-                            onClick={async () => {
-                              if (h.id) {
-                                // Удаляем из Strapi
-                                try {
-                                  await apiDeleteHoliday(h.id);
-                                  showToast("Праздник удалён");
-                                  // Перезагружаем из Strapi
-                                  const updated = await apiHolidays(year, month);
-                                  setHolidays(updated || []);
-                                } catch (err) {
-                                  const errorMsg = err instanceof Error ? err.message : String(err);
-                                  showToast(errorMsg || "Ошибка удаления праздника", "error");
-                                }
-                              } else {
-                                // Если нет ID, просто удаляем локально
-                                setHolidays(holidays.filter((x) => x.date !== h.date));
-                              }
-                            }}
-                            title="Удалить праздничный день"
-                          >
-                            ×
-                          </button>
                         </span>
                       );
                     })}
@@ -1101,6 +1315,12 @@ export default function App() {
               >
                 Скачать для бухгалтерии
               </button>
+              <button
+                className="btn btn-outline"
+                onClick={() => handleDownload("pdf")}
+              >
+                Скачать PDF
+              </button>
             </div>
 
             {calcResults.length > 0 && (
@@ -1126,7 +1346,7 @@ export default function App() {
                         <tr key={idx}>
                           <td>{idx + 1}</td>
                           <td>{r.fio}</td>
-                          <td>{r.scheduleType}</td>
+                          <td>{formatScheduleType(r.scheduleType)}</td>
                           <td>{r.department}</td>
                           <td>{r.daysAssigned}</td>
                           <td>{r.daysWorked}</td>
@@ -1290,7 +1510,7 @@ export default function App() {
                           <td>{emp.id}</td>
                           <td>{emp.fio}</td>
                           <td>{emp.kpiSum}</td>
-                          <td>{emp.scheduleType}</td>
+                          <td>{formatScheduleType(emp.scheduleType)}</td>
                           <td>{emp.department}</td>
                           <td>{emp.categoryCode}</td>
                           <td>
@@ -1344,7 +1564,7 @@ export default function App() {
                         <tr key={idx}>
                           <td>{row.fio}</td>
                           <td>{row.kpiSum}</td>
-                          <td>{row.scheduleType}</td>
+                          <td>{formatScheduleType(row.scheduleType)}</td>
                           <td>{row.department}</td>
                           <td>{row.categoryCode}</td>
                           <td>{row.timestamp || row.deleted_timestamp}</td>
@@ -1397,7 +1617,12 @@ export default function App() {
                               <td>{row.user}</td>
                               <td>{formatChange(row.fio_old, row.fio_new)}</td>
                               <td>{formatChange(row.department_old, row.department_new)}</td>
-                              <td>{formatChange(row.scheduleType_old, row.scheduleType_new)}</td>
+                              <td>
+                                {formatChange(
+                                  formatScheduleType(row.scheduleType_old),
+                                  formatScheduleType(row.scheduleType_new)
+                                )}
+                              </td>
                               <td>{formatChange(row.categoryCode_old, row.categoryCode_new)}</td>
                               <td>{formatChange(row.kpiSum_old, row.kpiSum_new)}</td>
                             </tr>
@@ -1437,7 +1662,7 @@ export default function App() {
                               <td>{row.user}</td>
                               <td>{row.fio}</td>
                               <td>{row.department}</td>
-                              <td>{row.scheduleType}</td>
+                              <td>{formatScheduleType(row.scheduleType)}</td>
                               <td>{row.kpiSum}</td>
                             </tr>
                           ))}

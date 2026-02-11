@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import XLSX from 'xlsx';
 import { DateTime } from 'luxon';
 
 interface Holiday {
@@ -117,6 +118,71 @@ function tryFloat(val: any): number | null {
 }
 
 
+function bufferStartsWith(buf: Buffer, signature: number[]): boolean {
+  if (!buf || buf.length < signature.length) return false;
+  for (let i = 0; i < signature.length; i++) {
+    if (buf[i] !== signature[i]) return false;
+  }
+  return true;
+}
+
+function detectExcelFormat(buf: Buffer): 'xlsx' | 'xls' | 'unknown' {
+  const xlsSig = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+  const zipSigs = [
+    [0x50, 0x4b, 0x03, 0x04],
+    [0x50, 0x4b, 0x05, 0x06],
+    [0x50, 0x4b, 0x07, 0x08],
+  ];
+
+  if (bufferStartsWith(buf, xlsSig)) return 'xls';
+  if (zipSigs.some((sig) => bufferStartsWith(buf, sig))) return 'xlsx';
+  return 'unknown';
+}
+
+function ensureBuffer(input: any): Buffer {
+  if (Buffer.isBuffer(input)) return input;
+  if (input instanceof ArrayBuffer) return Buffer.from(input);
+  if (ArrayBuffer.isView(input)) {
+    return Buffer.from(input.buffer, input.byteOffset, input.byteLength);
+  }
+  return Buffer.from(input);
+}
+
+async function loadWorkbookFromBuffer(fileBuffer: Buffer): Promise<ExcelJS.Workbook> {
+  const workbook = new ExcelJS.Workbook();
+  const format = detectExcelFormat(fileBuffer);
+
+  if (format === 'xlsx') {
+    await workbook.xlsx.load(fileBuffer);
+    return workbook;
+  }
+
+  if (format === 'xls') {
+    const legacy = XLSX.read(fileBuffer, { type: 'buffer' });
+    const xlsxBuffer = ensureBuffer(
+      XLSX.write(legacy, { type: 'buffer', bookType: 'xlsx' })
+    );
+    await workbook.xlsx.load(xlsxBuffer);
+    return workbook;
+  }
+
+  try {
+    await workbook.xlsx.load(fileBuffer);
+    return workbook;
+  } catch {
+    try {
+      const legacy = XLSX.read(fileBuffer, { type: 'buffer' });
+      const xlsxBuffer = ensureBuffer(
+        XLSX.write(legacy, { type: 'buffer', bookType: 'xlsx' })
+      );
+      await workbook.xlsx.load(xlsxBuffer);
+      return workbook;
+    } catch {
+      throw new Error('Файл табеля должен быть в формате .xlsx или .xls (Excel 97-2003).');
+    }
+  }
+}
+
 function normalizeHeader(value: any): string {
   return String(value || '').trim().toLowerCase();
 }
@@ -154,8 +220,7 @@ export async function parseTimesheet(
   holidays: (string | number)[] = []
 ): Promise<ParsedEmployee[]> {
   const holidayDays = normalizeHolidays(holidays, year, month);
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(fileBuffer);
+  const workbook = await loadWorkbookFromBuffer(fileBuffer);
 
   // Try to find Kazakh template first
   let worksheet = workbook.worksheets[0];
