@@ -416,10 +416,18 @@ export default function App() {
   // --- состояние формы расчёта KPI по табелю ---
   const [timesheetFile, setTimesheetFile] = useState(null);
   const [isDragActive, setIsDragActive] = useState(false);
-  const [nchDay, setNchDay] = useState("21");
-  const [ndShift, setNdShift] = useState("25");
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [month, setMonth] = useState(String(new Date().getMonth() + 1));
+  const activeMonthWorkdays = useMemo(() => {
+    const m = parseInt(month, 10);
+    if (!m || m < 1 || m > 12) {
+      return { day: 0, shift: 0 };
+    }
+    return MONTH_WORKDAYS[m] || { day: 0, shift: 0 };
+  }, [month]);
+  const nchDay = String(activeMonthWorkdays.day);
+  const ndShift = String(activeMonthWorkdays.shift);
+  const workdaysTransitionKey = `${month}-${nchDay}-${ndShift}`;
   const [holidays, setHolidays] = useState([]); // Массив объектов {id, date}
   const [calcResults, setCalcResults] = useState([]);
   const [calcErrors, setCalcErrors] = useState([]);
@@ -516,15 +524,6 @@ export default function App() {
     setTimesheetFile(file);
   };
 
-  useEffect(() => {
-    const m = parseInt(month, 10);
-    if (!m || m < 1 || m > 12) return;
-    const defaults = MONTH_WORKDAYS[m];
-    if (!defaults) return;
-    setNchDay(String(defaults.day));
-    setNdShift(String(defaults.shift));
-  }, [month]);
-
   const filterResultsByDept = (items, dept) => {
     if (!dept) return items || [];
     const target = normalizeDept(dept);
@@ -591,8 +590,6 @@ export default function App() {
       if (cached.activeTab) setActiveTab(String(cached.activeTab));
       if (cached.month) setMonth(String(cached.month));
       if (cached.year) setYear(String(cached.year));
-      if (cached.nchDay) setNchDay(String(cached.nchDay));
-      if (cached.ndShift) setNdShift(String(cached.ndShift));
       if (cached.calcDepartment) setCalcDepartment(String(cached.calcDepartment));
       if (Array.isArray(cached.calcResults)) setCalcResults(cached.calcResults);
       if (Array.isArray(cached.calcErrors)) setCalcErrors(cached.calcErrors);
@@ -611,8 +608,6 @@ export default function App() {
       activeTab,
       month,
       year,
-      nchDay,
-      ndShift,
       calcDepartment,
       calcResults,
       calcErrors,
@@ -628,8 +623,6 @@ export default function App() {
     activeTab,
     month,
     year,
-    nchDay,
-    ndShift,
     calcDepartment,
     calcResults,
     calcErrors,
@@ -1127,9 +1120,9 @@ export default function App() {
           <section className="card">
             <h2>Расчёт KPI по табелю</h2>
             <p className="card-subtitle">
-              Загрузите табель за месяц, укажите рабочие дни (дневные/суточные)
-              и нажмите «Рассчитать». Ниже появятся результаты и ошибки (если
-              есть).
+              Загрузите табель за месяц и нажмите «Рассчитать». Рабочие дни для
+              дневных и суточных автоматически подставляются по выбранному
+              месяцу.
             </p>
 
             <div className="form-grid">
@@ -1183,34 +1176,22 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Рабочие дни ДНЕВНЫЕ:</label>
-                <input
-                  type="number"
-                  value={nchDay}
-                  onChange={(e) => {
-                    if (isAdmin) {
-                      setNchDay(e.target.value);
-                    }
-                  }}
-                  disabled={!isAdmin}
-                  readOnly={!isAdmin}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Рабочие дни СУТОЧНЫЕ:</label>
-                <input
-                  type="number"
-                  value={ndShift}
-                  onChange={(e) => {
-                    if (isAdmin) {
-                      setNdShift(e.target.value);
-                    }
-                  }}
-                  disabled={!isAdmin}
-                  readOnly={!isAdmin}
-                />
+              <div className="form-group workdays-auto-field">
+                <label>Рабочие дни (авто):</label>
+                <div key={workdaysTransitionKey} className="workdays-auto-card">
+                  <div className="workdays-auto-item">
+                    <span className="workdays-auto-name">Дневные</span>
+                    <strong className="workdays-auto-value">{nchDay}</strong>
+                  </div>
+                  <div className="workdays-auto-divider" />
+                  <div className="workdays-auto-item">
+                    <span className="workdays-auto-name">Суточные</span>
+                    <strong className="workdays-auto-value">{ndShift}</strong>
+                  </div>
+                </div>
+                <div className="workdays-auto-note">
+                  Значения меняются автоматически при выборе месяца.
+                </div>
               </div>
 
               <div className="form-group">

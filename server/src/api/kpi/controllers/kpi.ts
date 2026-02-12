@@ -21,6 +21,26 @@ function parseNumber(value: any): number | null {
   return n;
 }
 
+function normalizeText(value: any): string {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function isCorruptedText(value: any): boolean {
+  const text = normalizeText(value);
+  if (!text) {
+    return false;
+  }
+
+  const compact = text.replace(/\s+/g, '');
+  if (!compact) {
+    return false;
+  }
+
+  const questionMarks = (compact.match(/\?/g) || []).length;
+  return questionMarks / compact.length >= 0.6;
+}
+
 export default {
   // GET /api/kpi-list
   async list(ctx: Context) {
@@ -359,13 +379,23 @@ export default {
         );
       }
 
+      // Hide technical cleanup rows where source text is irreversibly damaged.
+      filteredLogs = filteredLogs.filter((l: any) => {
+        const reason = normalizeText(l?.reason).toLowerCase();
+        const fioCorrupted = isCorruptedText(l?.oldData?.fio);
+        return !(reason === 'encoding cleanup after bulk import' && fioCorrupted);
+      });
+
       const items = filteredLogs.map((l: any) => ({
+        employeeId: l.employeeId || l.employee_id || l?.oldData?.id || null,
         timestamp: l.timestamp,
         user: l.user,
-        fio: l.oldData?.fio,
+        fio: isCorruptedText(l?.oldData?.fio)
+          ? `Сотрудник #${l.employeeId || l.employee_id || l?.oldData?.id || 'N/A'}`
+          : l.oldData?.fio,
         kpiSum: l.oldData?.kpiSum,
         scheduleType: l.oldData?.scheduleType,
-        department: l.oldData?.department,
+        department: isCorruptedText(l?.oldData?.department) ? '' : l.oldData?.department,
         categoryCode: l.oldData?.categoryCode,
         reason: l.reason,
       }));
@@ -550,5 +580,4 @@ export default {
     }
   },
 };
-
 
