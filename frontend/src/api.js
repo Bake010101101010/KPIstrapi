@@ -6,7 +6,7 @@ const VITE_API_BASE =
   typeof import.meta !== "undefined" && import.meta.env
     ? import.meta.env.VITE_API_BASE
     : "";
-const DEFAULT_API_BASE = `${window.location.protocol}//${window.location.hostname}:12003/api`;
+const DEFAULT_API_BASE = `${window.location.protocol}//${window.location.hostname}:12007/api`;
 const API_BASE = VITE_API_BASE || DEFAULT_API_BASE;
 const STRAPI_BASE = API_BASE;
 

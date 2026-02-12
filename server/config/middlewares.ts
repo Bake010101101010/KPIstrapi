@@ -6,7 +6,10 @@ export default [
     name: 'strapi::cors',
     config: {
       origin: [
+        'http://192.168.101.25:13007',
         'http://192.168.101.25:13000',
+        'http://localhost:13007',
+        'http://127.0.0.1:13007',
         'http://localhost:5173',
         'http://127.0.0.1:5173',
       ],
