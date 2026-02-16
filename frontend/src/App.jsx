@@ -29,6 +29,15 @@ const safeParseJSON = (value) => {
   }
 };
 
+const isUnauthorizedError = (value) => {
+  const text = String(value || "").toLowerCase();
+  return (
+    text.includes("401") ||
+    text.includes("unauthorized") ||
+    text.includes("missing or invalid credentials")
+  );
+};
+
 const MONTH_WORKDAYS = {
   1: { day: 20, shift: 24 },
   2: { day: 21, shift: 24 },
@@ -556,9 +565,8 @@ export default function App() {
     const token = localStorage.getItem("kpi_token");
     const cachedUser = safeParseJSON(localStorage.getItem(STORAGE_USER_KEY));
     if (!token) {
-      if (cachedUser) {
-        setUser(cachedUser);
-      }
+      if (cachedUser) localStorage.removeItem(STORAGE_USER_KEY);
+      setUser(null);
       setAuthChecked(true);
       return;
     }
@@ -572,10 +580,19 @@ export default function App() {
         setUser(cachedUser);
         localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(cachedUser));
       })
-      .catch(() => {
-        if (cachedUser) {
-          setUser(cachedUser);
+      .catch((err) => {
+        const errorMsg = err instanceof Error ? err.message : String(err || "");
+        if (isUnauthorizedError(errorMsg)) {
+          localStorage.removeItem("kpi_token");
+          localStorage.removeItem(STORAGE_USER_KEY);
+          setUser(null);
+          setToast({
+            text: "Сессия истекла. Войдите заново.",
+            type: "error",
+          });
+          return;
         }
+        if (cachedUser) setUser(cachedUser);
       })
       .finally(() => setAuthChecked(true));
   }, []);
@@ -678,11 +695,16 @@ export default function App() {
     if (listRes.status === "fulfilled") {
       setKpiItems(listRes.value.items || listRes.value || []);
     } else {
-      setKpiItems([]);
       const errorMsg =
         listRes.reason instanceof Error
           ? listRes.reason.message
           : String(listRes.reason || "");
+      if (isUnauthorizedError(errorMsg)) {
+        handleLogout();
+        showToast("Сессия истекла. Войдите заново.", "error");
+        return;
+      }
+      setKpiItems([]);
       showToast(errorMsg || "Ошибка загрузки списка сотрудников", "error");
     }
 
@@ -709,6 +731,11 @@ export default function App() {
       setAccessUsers(res.items || res || []);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
+      if (isUnauthorizedError(errorMsg)) {
+        handleLogout();
+        showToast("Сессия истекла. Войдите заново.", "error");
+        return;
+      }
       showToast(errorMsg || "Ошибка загрузки доступов", "error");
     } finally {
       setAccessLoading(false);

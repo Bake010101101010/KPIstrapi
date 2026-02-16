@@ -6,12 +6,10 @@ const frontendPort = Number(process.env.PORT || process.env.FRONTEND_PORT || 130
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: '0.0.0.0',
     port: frontendPort,
     strictPort: true,
   },
   preview: {
-    host: '0.0.0.0',
     port: frontendPort,
     strictPort: true,
   },
